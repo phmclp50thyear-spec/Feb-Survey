@@ -3,204 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hospital Experience Survey</title>
+    <title>Staff Login | Perpetual Help</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-    <style>
-        .collapsible-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: all 0.5s cubic-bezier(0, 1, 0, 1);
-        }
-        .collapsible-content.open {
-            max-height: 2000px;
-            transition: all 0.5s cubic-bezier(1, 0, 1, 0);
-        }
-    </style>
 </head>
-<body class="bg-slate-50 min-h-screen p-4 md:p-12 font-sans">
+<body class="bg-slate-100 flex items-center justify-center min-h-screen p-4">
 
-    <div class="max-w-3xl mx-auto">
-        <div class="group relative inline-block mb-8">
-            <button id="toggleForm" class="bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-full shadow-xl transition-all hover:rotate-90 active:scale-90 flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            </button>
-            <span class="absolute left-16 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-sm font-medium px-3 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap shadow-sm pointer-events-none">
-                Add Survey
-            </span>
+    <div class="bg-white p-8 rounded-2xl shadow-2xl w-full max-w-md border border-gray-100">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-black text-indigo-600 uppercase tracking-widest">Hospital Portal</h1>
+            <p class="text-gray-500 text-sm">Please sign in to access surveys</p>
         </div>
 
-        <form id="surveyForm" class="collapsible-content bg-white rounded-2xl shadow-xl border border-gray-100">
-            <div class="p-6 md:p-12 space-y-10">
-                <header class="border-b border-gray-100 pb-6">
-                    <h2 class="text-3xl font-extrabold text-gray-900 tracking-tight">Patient Survey</h2>
-                    <p class="text-gray-500 mt-2">Help us improve Perpetual Help and Medical Center.</p>
-                </header>
-
-                <section class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="space-y-2">
-                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wider">Age</label>
-                        <input type="number" name="age" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wider">Gender</label>
-                        <select name="gender" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all">
-                            <option value="">Select...</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wider">Location</label>
-                        <input type="text" name="location" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all">
-                    </div>
-                    <div class="space-y-2">
-                        <label class="text-sm font-bold text-gray-700 uppercase tracking-wider">Occupation</label>
-                        <input type="text" name="occupation" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all">
-                    </div>
-                </section>
-
-                <section class="flex flex-wrap gap-8 items-center bg-indigo-50 p-5 rounded-xl">
-                    <span class="text-sm font-bold text-indigo-900 uppercase">Patient Status:</span>
-                    <div class="flex gap-6">
-                        <label class="flex items-center space-x-3 cursor-pointer group">
-                            <input type="radio" name="patient_type" value="New" required class="w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500">
-                            <span class="text-indigo-900 font-medium group-hover:text-indigo-600 transition-colors">New Patient</span>
-                        </label>
-                        <label class="flex items-center space-x-3 cursor-pointer group">
-                            <input type="radio" name="patient_type" value="Repeat" class="w-5 h-5 text-indigo-600 border-gray-300 focus:ring-indigo-500">
-                            <span class="text-indigo-900 font-medium group-hover:text-indigo-600 transition-colors">Repeat Patient</span>
-                        </label>
-                    </div>
-                </section>
-
-                <section class="space-y-3">
-                    <label class="block text-lg font-semibold text-gray-800">What is your primary objective visiting the hospital today?</label>
-                    <select id="departmentDropdown" name="primary_objective" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-4 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer">
-                        <option value="">Fetching Departments...</option>
-                    </select>
-                </section>
-
-                <section class="space-y-6 pt-6 border-t border-gray-100">
-                    <p class="text-lg font-semibold text-gray-800">How is your experience in Perpetual Help and Medical Center?</p>
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <label class="flex-1 flex items-center justify-center p-4 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-green-500 hover:bg-green-50 transition-all peer-checked:bg-green-100">
-                            <input type="radio" name="experience" value="Positive" required onclick="showReasons()" class="hidden peer">
-                            <span class="font-bold text-gray-600 peer-checked:text-green-700">Positive Response</span>
-                        </label>
-                        <label class="flex-1 flex items-center justify-center p-4 border-2 border-gray-100 rounded-xl cursor-pointer hover:border-red-500 hover:bg-red-50 transition-all peer-checked:bg-red-100">
-                            <input type="radio" name="experience" value="Negative" onclick="showReasons()" class="hidden peer">
-                            <span class="font-bold text-gray-600 peer-checked:text-red-700">Negative Response</span>
-                        </label>
-                    </div>
-
-                    <div id="reasonsContainer" class="hidden space-y-2 animate-in fade-in slide-in-from-top-4 duration-300">
-                        <label class="block text-sm font-bold text-gray-700 uppercase">Please state your reasons:</label>
-                        <textarea name="feedback_details" rows="4" class="w-full border-gray-200 rounded-xl bg-gray-50 p-4 focus:ring-2 focus:ring-indigo-500 focus:bg-white outline-none transition-all" placeholder="We value your honest feedback..."></textarea>
-                    </div>
-                </section>
-
-                <button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white font-black uppercase tracking-widest py-4 px-6 rounded-xl hover:bg-indigo-700 transform transition-all active:scale-[0.98] shadow-lg hover:shadow-indigo-200">
-                    Submit Survey
-                </button>
+        <form id="loginForm" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Email Address</label>
+                <input type="email" id="email" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
             </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Password</label>
+                <input type="password" id="password" required class="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
+            </div>
+            <button type="submit" id="loginBtn" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl hover:bg-indigo-700 transition-all shadow-lg active:scale-95">
+                Sign In
+            </button>
         </form>
     </div>
 
     <script>
-        // --- Supabase Client Integration ---
         const SB_URL = 'https://osfwbhcqibhtobaoojrv.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZndiaGNxaWJodG9iYW9vanJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDU3MzksImV4cCI6MjA4NTY4MTczOX0.2NNaOhHfXMsYVWrBkJ1gudU4l0in35WU4bT4UgzkvlA';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
-        const form = document.getElementById('surveyForm');
-        const toggleBtn = document.getElementById('toggleForm');
-        const reasonsBox = document.getElementById('reasonsContainer');
-        const deptDropdown = document.getElementById('departmentDropdown');
-        const submitBtn = document.getElementById('submitBtn');
-
-        // Toggle Form
-        toggleBtn.addEventListener('click', () => {
-            form.classList.toggle('open');
-        });
-
-        // Show Reasons input box
-        function showReasons() {
-            reasonsBox.classList.remove('hidden');
-        }
-
-        // Load Departments from Supabase
-        async function loadDepartments() {
-            try {
-                const { data, error } = await supabaseClient
-                    .from('hospital_departments')
-                    .select('name')
-                    .eq('is_active', true)
-                    .order('name');
-
-                if (data) {
-                    deptDropdown.innerHTML = '<option value="">Select Department</option>' + 
-                        data.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
-                }
-            } catch (err) {
-                console.error('Failed to load departments', err);
-            }
-        }
-
-        // Submit Logic
-        form.addEventListener('submit', async (e) => {
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            submitBtn.innerText = 'Sending...';
-            submitBtn.disabled = true;
-
-            const fd = new FormData(form);
+            const loginBtn = document.getElementById('loginBtn');
+            loginBtn.innerText = 'Verifying...';
             
-            // 1. Create the submission record
-            const { data: sub, error: subErr } = await supabaseClient
-                .from('survey_submissions')
-                .insert([{
-                    age: fd.get('age'),
-                    gender: fd.get('gender'),
-                    location: fd.get('location'),
-                    occupation: fd.get('occupation'),
-                    patient_type: fd.get('patient_type'),
-                    primary_objective: fd.get('primary_objective')
-                }])
-                .select();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
-            if (subErr) {
-                alert('Submission error: ' + subErr.message);
-                resetBtn();
-                return;
-            }
+            const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
 
-            // 2. Attach the response
-            const { error: respErr } = await supabaseClient
-                .from('survey_responses')
-                .insert([{
-                    submission_id: sub[0].id,
-                    rating_response: fd.get('experience'),
-                    feedback_text: fd.get('feedback_details')
-                }]);
-
-            if (!respErr) {
-                alert('Survey submitted successfully!');
-                form.reset();
-                form.classList.remove('open');
-                reasonsBox.classList.add('hidden');
+            if (error) {
+                alert('Login Failed: ' + error.message);
+                loginBtn.innerText = 'Sign In';
             } else {
-                alert('Response error: ' + respErr.message);
+                window.location.href = 'survey.html';
             }
-            resetBtn();
         });
 
-        function resetBtn() {
-            submitBtn.innerText = 'Submit Survey';
-            submitBtn.disabled = false;
+        // Redirect if already logged in
+        async function checkSession() {
+            const { data } = await supabaseClient.auth.getSession();
+            if (data.session) window.location.href = 'survey.html';
         }
-
-        loadDepartments();
+        checkSession();
     </script>
 </body>
 </html>
