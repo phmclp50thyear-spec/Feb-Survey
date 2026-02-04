@@ -10,29 +10,13 @@
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800">
 
-    <script>
-        const SB_URL = 'https://osfwbhcqibhtobaoojrv.supabase.co';
-        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZndiaGNxaWJodG9iYW9vanJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDU3MzksImV4cCI6MjA4NTY4MTczOX0.2NNaOhHfXMsYVWrBkJ1gudU4l0in35WU4bT4UgzkvlA';
-        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-
-        async function init() {
-            try {
-                const { data: { user } } = await supabaseClient.auth.getUser();
-                if (!user) { window.location.href = 'index.html'; return; }
-                document.getElementById('userDisplay').innerText = user.email;
-                fetchData();
-            } catch (e) { console.error("Init Error:", e); }
-        }
-        init();
-    </script>
-
     <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 p-3 md:p-4 shadow-sm">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4 md:gap-8">
                 <h1 class="font-black text-indigo-600 tracking-tighter text-lg md:text-xl uppercase">PHMC</h1>
                 <div class="flex gap-4 md:gap-6">
-                    <a href="survey.html" class="text-sm font-bold text-slate-400 hover:text-indigo-600 transition flex items-center gap-1.5">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line></svg>
+                    <a href="survey.html" class="text-sm font-bold text-slate-400 hover:text-indigo-600 flex items-center gap-1.5 transition-colors">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                         <span class="text-[11px] md:text-sm">Entry</span>
                     </a>
                     <a href="reports.html" class="text-sm font-bold text-indigo-600 flex items-center gap-1.5">
@@ -46,113 +30,121 @@
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Total</p><h3 id="totalCount" class="text-2xl font-black italic">--</h3></div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="statsRow">
+            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Total</p><h3 id="totalCount" class="text-2xl font-black italic text-slate-800">--</h3></div>
             <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Satisfaction</p><h3 id="posRate" class="text-2xl font-black italic text-green-500">--</h3></div>
             <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Repeat</p><h3 id="repeatCount" class="text-2xl font-black italic text-indigo-600">--</h3></div>
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">New</p><h3 id="newCount" class="text-2xl font-black italic text-slate-800">--</h3></div>
+            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">New</p><h3 id="newCount" class="text-2xl font-black italic text-slate-400">--</h3></div>
         </div>
 
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
             <h4 class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">Demographic Comparison</h4>
-            <div class="h-[300px] w-full"><canvas id="demoChart"></canvas></div>
+            <div style="position: relative; height:300px; width:100%"><canvas id="demoChart"></canvas></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
                 <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Volume by Department</h4>
-                <canvas id="deptChart"></canvas>
+                <div style="position: relative; height:250px;"><canvas id="deptChart"></canvas></div>
             </div>
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Patient Occupation</h4>
-                <div class="h-64 flex justify-center"><canvas id="occChart"></canvas></div>
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Occupation Pie Chart</h4>
+                <div style="position: relative; height:250px;"><canvas id="occChart"></canvas></div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Sentiment Score</h4>
-                <div class="h-48 flex justify-center"><canvas id="sentimentChart"></canvas></div>
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Sentiment Doughnut</h4>
+                <div style="position: relative; height:200px;"><canvas id="sentimentChart"></canvas></div>
             </div>
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
                 <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Top Locations</h4>
-                <canvas id="locationChart"></canvas>
+                <div style="position: relative; height:200px;"><canvas id="locationChart"></canvas></div>
             </div>
         </div>
     </main>
 
     <script>
+        const SB_URL = 'https://osfwbhcqibhtobaoojrv.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZndiaGNxaWJodG9iYW9vanJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDU3MzksImV4cCI6MjA4NTY4MTczOX0.2NNaOhHfXMsYVWrBkJ1gudU4l0in35WU4bT4UgzkvlA';
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
         const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#f43f5e', '#14b8a6'];
+
+        // Safety: Ensure page is ready
+        window.onload = async () => {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) { window.location.href = 'index.html'; return; }
+            fetchData();
+        };
 
         async function fetchData() {
             try {
-                const { data, error } = await supabaseClient.from('survey_submissions').select('*').order('created_at', { ascending: false });
-                if (error || !data) throw error;
+                const { data, error } = await supabaseClient.from('survey_submissions').select('*');
+                if (error || !data) return;
 
+                // Basic Stats
                 const total = data.length;
                 const pos = data.filter(s => s.experience_rating === 'Positive').length;
                 const rep = data.filter(s => s.patient_type === 'Repeat').length;
                 
                 document.getElementById('totalCount').innerText = total;
-                document.getElementById('posRate').innerText = total > 0 ? Math.round((pos/total)*100) + '%' : '--';
+                document.getElementById('posRate').innerText = total > 0 ? Math.round((pos/total)*100) + '%' : '0%';
                 document.getElementById('repeatCount').innerText = rep;
                 document.getElementById('newCount').innerText = total - rep;
 
-                Chart.defaults.color = '#94a3b8';
-                Chart.defaults.font.family = 'sans-serif';
-
-                // 1. DEMOGRAPHIC (MALE/FEMALE)
-                const ageLabels = ['0-19', '20-39', '40-59', '60-79', '80-90'];
-                const mData = [0,0,0,0,0], fData = [0,0,0,0,0];
+                // 1. DEMOGRAPHIC (Side-by-Side Bar)
+                const ageGroups = ['0-19', '20-39', '40-59', '60-79', '80-90'];
+                const mArr = [0,0,0,0,0], fArr = [0,0,0,0,0];
                 data.forEach(s => {
                     let i = s.age <= 19 ? 0 : s.age <= 39 ? 1 : s.age <= 59 ? 2 : s.age <= 79 ? 3 : 4;
-                    if (s.gender === 'Male') mData[i]++; else fData[i]++;
+                    if (s.gender === 'Male') mArr[i]++; else fArr[i]++;
                 });
                 new Chart(document.getElementById('demoChart'), {
                     type: 'bar',
-                    data: { labels: ageLabels, datasets: [
-                        { label: 'MALE', data: mData, backgroundColor: '#2dd4bf', borderRadius: 4 },
-                        { label: 'FEMALE', data: fData, backgroundColor: '#0ea5e9', borderRadius: 4 }
+                    data: { labels: ageGroups, datasets: [
+                        { label: 'MALE', data: mArr, backgroundColor: '#2dd4bf', borderRadius: 4 },
+                        { label: 'FEMALE', data: fArr, backgroundColor: '#0ea5e9', borderRadius: 4 }
                     ]},
                     options: { responsive: true, maintainAspectRatio: false }
                 });
 
-                // 2. DEPARTMENT (MULTICOLOR)
-                const deptMap = {};
-                data.forEach(s => deptMap[s.primary_objective] = (deptMap[s.primary_objective] || 0) + 1);
+                // 2. DEPT (Multicolored)
+                const dMap = {};
+                data.forEach(s => dMap[s.primary_objective] = (dMap[s.primary_objective] || 0) + 1);
                 new Chart(document.getElementById('deptChart'), {
                     type: 'bar',
-                    data: { labels: Object.keys(deptMap), datasets: [{ data: Object.values(deptMap), backgroundColor: COLORS, borderRadius: 6 }] },
-                    options: { plugins: { legend: { display: false } } }
+                    data: { labels: Object.keys(dMap), datasets: [{ data: Object.values(dMap), backgroundColor: COLORS, borderRadius: 5 }]},
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}}
                 });
 
-                // 3. OCCUPATION PIE CHART
-                const occMap = {};
-                data.forEach(s => occMap[s.occupation] = (occMap[s.occupation] || 0) + 1);
+                // 3. OCCUPATION PIE
+                const oMap = {};
+                data.forEach(s => oMap[s.occupation] = (oMap[s.occupation] || 0) + 1);
                 new Chart(document.getElementById('occChart'), {
                     type: 'pie',
-                    data: { labels: Object.keys(occMap), datasets: [{ data: Object.values(occMap), backgroundColor: COLORS }] },
-                    options: { plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
+                    data: { labels: Object.keys(oMap), datasets: [{ data: Object.values(oMap), backgroundColor: COLORS }]},
+                    options: { responsive: true, maintainAspectRatio: false }
                 });
 
-                // 4. SENTIMENT (DOUGHNUT)
+                // 4. SENTIMENT DOUGHNUT
                 new Chart(document.getElementById('sentimentChart'), {
                     type: 'doughnut',
-                    data: { labels: ['Pos', 'Neg'], datasets: [{ data: [pos, total-pos], backgroundColor: ['#10b981', '#f43f5e'], borderWidth: 0 }] },
-                    options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+                    data: { labels: ['Pos', 'Neg'], datasets: [{ data: [pos, total-pos], backgroundColor: ['#10b981', '#f43f5e'] }]},
+                    options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
                 });
 
-                // 5. LOCATION (HORIZONTAL)
-                const locMap = {};
-                data.forEach(s => locMap[s.location] = (locMap[s.location] || 0) + 1);
-                const sortedLocs = Object.entries(locMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+                // 5. LOCATION (Horizontal)
+                const lMap = {};
+                data.forEach(s => lMap[s.location] = (lMap[s.location] || 0) + 1);
+                const lSrt = Object.entries(lMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
                 new Chart(document.getElementById('locationChart'), {
                     type: 'bar',
-                    data: { labels: sortedLocs.map(l => l[0]), datasets: [{ data: sortedLocs.map(l => l[1]), backgroundColor: COLORS, borderRadius: 6 }] },
-                    options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+                    data: { labels: lSrt.map(x => x[0]), datasets: [{ data: lSrt.map(x => x[1]), backgroundColor: COLORS, borderRadius: 5 }]},
+                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}}
                 });
 
-            } catch (err) { console.error("Fetch/Render error:", err); }
+            } catch (e) { console.error("Error drawing charts:", e); }
         }
     </script>
 </body>
