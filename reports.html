@@ -33,76 +33,66 @@
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line></svg>
                         <span class="text-[11px] md:text-sm">Entry</span>
                     </a>
-                    <a href="reports.html" class="text-sm font-bold text-indigo-600 flex items-center gap-1.5 transition-colors">
+                    <a href="reports.html" class="text-sm font-bold text-indigo-600 flex items-center gap-1.5">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                         <span class="text-[11px] md:text-sm">Reports</span>
                     </a>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <span id="userDisplay" class="hidden md:inline text-[10px] font-medium text-slate-400 italic">...</span>
-                <button onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="bg-slate-100 text-[10px] md:text-xs px-3 py-1.5 rounded-full font-bold hover:bg-red-50 hover:text-red-600 transition">Logout</button>
-            </div>
+            <button onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="bg-slate-100 text-[10px] md:text-xs px-3 py-1.5 rounded-full font-bold">Logout</button>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 text-center md:text-left">
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Submissions</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Submissions</p>
                 <h3 id="totalCount" class="text-3xl font-black italic text-slate-800">--</h3>
             </div>
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Satisfaction Rate</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Satisfaction</p>
                 <h3 id="posRate" class="text-3xl font-black italic text-green-500">--</h3>
             </div>
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Repeat Patients</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Repeat Rate</p>
                 <h3 id="repeatCount" class="text-3xl font-black italic text-indigo-600">--</h3>
             </div>
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">New Patients</p>
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">New Faces</p>
                 <h3 id="newCount" class="text-3xl font-black italic text-slate-800">--</h3>
             </div>
         </div>
 
-        <div class="flex flex-col lg:flex-row gap-6">
-            <div class="lg:w-1/3 space-y-6">
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Sentiment Distribution</h4>
-                    <canvas id="sentimentChart" class="max-h-40"></canvas>
-                </div>
-                <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                    <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Age Bracket Group</h4>
-                    <canvas id="ageChart"></canvas>
-                </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-6 tracking-tighter">Volume by Department</h4>
+                <canvas id="deptChart" class="max-h-64"></canvas>
             </div>
-            <div class="lg:flex-1 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Top Patient Locations</h4>
-                <canvas id="locationChart"></canvas>
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-6 tracking-tighter">Patient Origin (Top Locations)</h4>
+                <canvas id="locationChart" class="max-h-64"></canvas>
             </div>
         </div>
 
-        <div class="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-            <div class="p-6 border-b border-slate-50 flex justify-between items-center">
-                <h4 class="text-xs font-black text-slate-400 uppercase">Recent Patient Feedback</h4>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Sentiment</h4>
+                <canvas id="sentimentChart" class="max-h-40"></canvas>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50/50">
-                            <th class="p-4 text-[10px] font-black text-slate-400 uppercase">Sentiment</th>
-                            <th class="p-4 text-[10px] font-black text-slate-400 uppercase">Department</th>
-                            <th class="p-4 text-[10px] font-black text-slate-400 uppercase">Feedback Detail</th>
-                        </tr>
-                    </thead>
-                    <tbody id="feedbackTableBody" class="text-sm"></tbody>
-                </table>
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-2 overflow-hidden">
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4 px-2">Recent Feedback</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <tbody id="feedbackTableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </main>
 
     <script>
+        const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+
         async function fetchData() {
             const { data } = await supabaseClient.from('survey_submissions').select('*').order('created_at', { ascending: false });
             if (!data || data.length === 0) return;
@@ -110,59 +100,59 @@
             const total = data.length;
             const pos = data.filter(s => s.experience_rating === 'Positive').length;
             const rep = data.filter(s => s.patient_type === 'Repeat').length;
-            const newCount = total - rep;
-
+            
             document.getElementById('totalCount').innerText = total;
             document.getElementById('posRate').innerText = Math.round((pos/total)*100) + '%';
             document.getElementById('repeatCount').innerText = rep;
-            document.getElementById('newCount').innerText = newCount;
+            document.getElementById('newCount').innerText = total - rep;
 
-            // Feed Table
-            const tableBody = document.getElementById('feedbackTableBody');
-            tableBody.innerHTML = data.slice(0, 10).map(row => `
-                <tr class="border-b border-slate-50 hover:bg-slate-50/50">
-                    <td class="p-4">
-                        <span class="px-2 py-1 rounded-full text-[10px] font-bold ${row.experience_rating === 'Positive' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
-                            ${row.experience_rating.toUpperCase()}
-                        </span>
-                    </td>
-                    <td class="p-4 font-bold text-slate-600">${row.primary_objective}</td>
-                    <td class="p-4 text-slate-500 italic max-w-xs truncate">${row.feedback_details || 'No details'}</td>
+            // TABLE LOGIC
+            document.getElementById('feedbackTableBody').innerHTML = data.slice(0, 5).map(row => `
+                <tr class="border-t border-slate-50">
+                    <td class="py-3 px-2 font-bold ${row.experience_rating === 'Positive' ? 'text-green-500' : 'text-red-500'}">${row.experience_rating[0]}</td>
+                    <td class="py-3 px-2 text-slate-600 font-medium">${row.primary_objective}</td>
+                    <td class="py-3 px-2 text-slate-400 italic truncate max-w-[150px]">${row.feedback_details || '...'}</td>
                 </tr>
             `).join('');
 
             Chart.defaults.color = '#94a3b8';
-            Chart.defaults.font.family = 'sans-serif';
 
-            // Sentiment
+            // 1. DEPARTMENT BAR GRAPH
+            const deptMap = {};
+            data.forEach(s => deptMap[s.primary_objective] = (deptMap[s.primary_objective] || 0) + 1);
+            new Chart(document.getElementById('deptChart'), {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(deptMap),
+                    datasets: [{ label: 'Visits', data: Object.values(deptMap), backgroundColor: '#6366f1', borderRadius: 10 }]
+                },
+                options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } }
+            });
+
+            // 2. COLORFUL LOCATION GRAPH (Horizontal)
+            const locMap = {};
+            data.forEach(s => locMap[s.location] = (locMap[s.location] || 0) + 1);
+            const locs = Object.entries(locMap).sort((a,b) => b[1] - a[1]).slice(0, 6);
+            
+            new Chart(document.getElementById('locationChart'), {
+                type: 'bar',
+                data: {
+                    labels: locs.map(l => l[0]),
+                    datasets: [{ 
+                        data: locs.map(l => l[1]), 
+                        backgroundColor: COLORS, // Multicolored bars
+                        borderRadius: 10,
+                        barThickness: 20
+                    }]
+                },
+                options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: { grid: { display: false } }, y: { grid: { display: false } } } }
+            });
+
+            // 3. SENTIMENT DOUGHNUT
             new Chart(document.getElementById('sentimentChart'), {
                 type: 'doughnut',
                 data: { labels: ['Pos', 'Neg'], datasets: [{ data: [pos, total-pos], backgroundColor: ['#10b981', '#f43f5e'], borderWidth: 0 }] },
                 options: { cutout: '80%', plugins: { legend: { position: 'bottom' } } }
-            });
-
-            // Age
-            const brackets = { '0-18': 0, '19-35': 0, '36-50': 0, '51+': 0 };
-            data.forEach(s => {
-                if (s.age <= 18) brackets['0-18']++;
-                else if (s.age <= 35) brackets['19-35']++;
-                else if (s.age <= 50) brackets['36-50']++;
-                else brackets['51+']++;
-            });
-            new Chart(document.getElementById('ageChart'), {
-                type: 'bar',
-                data: { labels: Object.keys(brackets), datasets: [{ data: Object.values(brackets), backgroundColor: '#6366f1', borderRadius: 8 }] },
-                options: { scales: { y: { display: false }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
-            });
-
-            // Location
-            const locMap = {};
-            data.forEach(s => locMap[s.location] = (locMap[s.location] || 0) + 1);
-            const locEntries = Object.entries(locMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
-            new Chart(document.getElementById('locationChart'), {
-                type: 'bar',
-                data: { labels: locEntries.map(e => e[0]), datasets: [{ data: locEntries.map(e => e[1]), backgroundColor: '#cbd5e1', borderRadius: 6 }] },
-                options: { indexAxis: 'y', scales: { x: { grid: { display: false } }, y: { grid: { display: false } } }, plugins: { legend: { display: false } } }
             });
         }
     </script>
