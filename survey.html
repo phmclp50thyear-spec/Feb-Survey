@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Survey | Perpetual Help</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        .collapsible-content { max-height: 0; overflow: hidden; transition: all 0.5s ease; }
+        .collapsible-content.open { max-height: 2000px; }
+    </style>
+</head>
+<body class="bg-slate-50 min-h-screen">
+
+    <script>
+        const SB_URL = 'https://osfwbhcqibhtobaoojrv.supabase.co';
+        const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZndiaGNxaWJodG9iYW9vanJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDU3MzksImV4cCI6MjA4NTY4MTczOX0.2NNaOhHfXMsYVWrBkJ1gudU4l0in35WU4bT4UgzkvlA';
+        const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+
+        async function protectPage() {
+            const { data: { user } } = await supabaseClient.auth.getUser();
+            if (!user) window.location.href = 'index.html';
+        }
+        protectPage();
+    </script>
+
+    <nav class="bg-white border-b p-4 mb-8">
+        <div class="max-w-3xl mx-auto flex justify-between items-center">
+            <span class="font-bold text-indigo-600">PHMC Portal</span>
+            <button onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="text-sm text-red-500 font-medium">Logout</button>
+        </div>
+    </nav>
+
+    <div class="max-w-3xl mx-auto p-4">
+        </div>
+
+</body>
+</html>
