@@ -21,7 +21,7 @@
                 if (!user) { window.location.href = 'index.html'; return; }
                 document.getElementById('userDisplay').innerText = user.email;
                 fetchData();
-            } catch (e) { console.error("Critical Init Error:", e); }
+            } catch (e) { console.error("Init Error:", e); }
         }
         init();
     </script>
@@ -41,38 +41,21 @@
                     </a>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <span id="userDisplay" class="hidden md:inline text-[10px] font-medium text-slate-400 italic">...</span>
-                <button onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="bg-slate-100 text-[10px] md:text-xs px-3 py-1.5 rounded-full font-bold">Logout</button>
-            </div>
+            <button onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="bg-slate-100 text-[10px] md:text-xs px-3 py-1.5 rounded-full font-bold">Logout</button>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase">Total</p>
-                <h3 id="totalCount" class="text-2xl font-black italic">--</h3>
-            </div>
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase">Satisfaction</p>
-                <h3 id="posRate" class="text-2xl font-black italic text-green-500">--</h3>
-            </div>
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase">Repeat</p>
-                <h3 id="repeatCount" class="text-2xl font-black italic text-indigo-600">--</h3>
-            </div>
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm">
-                <p class="text-[10px] font-black text-slate-400 uppercase">New</p>
-                <h3 id="newCount" class="text-2xl font-black italic text-slate-800">--</h3>
-            </div>
+            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Total</p><h3 id="totalCount" class="text-2xl font-black italic">--</h3></div>
+            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Satisfaction</p><h3 id="posRate" class="text-2xl font-black italic text-green-500">--</h3></div>
+            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Repeat</p><h3 id="repeatCount" class="text-2xl font-black italic text-indigo-600">--</h3></div>
+            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">New</p><h3 id="newCount" class="text-2xl font-black italic text-slate-800">--</h3></div>
         </div>
 
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h4 class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">Demographic Comparison (Male vs Female)</h4>
-            <div class="h-[300px] w-full">
-                <canvas id="demoChart"></canvas>
-            </div>
+            <h4 class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">Demographic Comparison</h4>
+            <div class="h-[300px] w-full"><canvas id="demoChart"></canvas></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -81,94 +64,75 @@
                 <canvas id="deptChart"></canvas>
             </div>
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Top Patient Locations</h4>
-                <canvas id="locationChart"></canvas>
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Patient Occupation</h4>
+                <div class="h-64 flex justify-center"><canvas id="occChart"></canvas></div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
                 <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Sentiment Score</h4>
-                <div class="h-48 flex items-center justify-center">
-                    <canvas id="sentimentChart"></canvas>
-                </div>
+                <div class="h-48 flex justify-center"><canvas id="sentimentChart"></canvas></div>
             </div>
-            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-2 overflow-hidden">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Recent Feedback</h4>
-                <div class="space-y-3" id="feedbackList"></div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Top Locations</h4>
+                <canvas id="locationChart"></canvas>
             </div>
         </div>
     </main>
 
     <script>
-        const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
+        const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#f43f5e', '#14b8a6'];
 
         async function fetchData() {
             try {
                 const { data, error } = await supabaseClient.from('survey_submissions').select('*').order('created_at', { ascending: false });
-                if (error) throw error;
-                if (!data || data.length === 0) return;
+                if (error || !data) throw error;
 
-                // Stats
                 const total = data.length;
                 const pos = data.filter(s => s.experience_rating === 'Positive').length;
                 const rep = data.filter(s => s.patient_type === 'Repeat').length;
                 
                 document.getElementById('totalCount').innerText = total;
-                document.getElementById('posRate').innerText = Math.round((pos/total)*100) + '%';
+                document.getElementById('posRate').innerText = total > 0 ? Math.round((pos/total)*100) + '%' : '--';
                 document.getElementById('repeatCount').innerText = rep;
                 document.getElementById('newCount').innerText = total - rep;
 
-                // Feedback
-                document.getElementById('feedbackList').innerHTML = data.slice(0, 4).map(row => `
-                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] md:text-xs">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="font-bold uppercase ${row.experience_rating === 'Positive' ? 'text-green-500' : 'text-red-500'}">${row.experience_rating}</span>
-                            <span class="font-medium text-slate-400 uppercase">${row.primary_objective}</span>
-                        </div>
-                        <p class="text-slate-600 italic">"${row.feedback_details || 'No comment'}"</p>
-                    </div>
-                `).join('');
-
                 Chart.defaults.color = '#94a3b8';
+                Chart.defaults.font.family = 'sans-serif';
 
-                // 1. DEMOGRAPHIC (SIDE-BY-SIDE)
+                // 1. DEMOGRAPHIC (MALE/FEMALE)
                 const ageLabels = ['0-19', '20-39', '40-59', '60-79', '80-90'];
-                const maleData = [0, 0, 0, 0, 0];
-                const femaleData = [0, 0, 0, 0, 0];
+                const mData = [0,0,0,0,0], fData = [0,0,0,0,0];
                 data.forEach(s => {
-                    let idx = s.age <= 19 ? 0 : s.age <= 39 ? 1 : s.age <= 59 ? 2 : s.age <= 79 ? 3 : 4;
-                    if (s.gender === 'Male') maleData[idx]++; else femaleData[idx]++;
+                    let i = s.age <= 19 ? 0 : s.age <= 39 ? 1 : s.age <= 59 ? 2 : s.age <= 79 ? 3 : 4;
+                    if (s.gender === 'Male') mData[i]++; else fData[i]++;
                 });
                 new Chart(document.getElementById('demoChart'), {
                     type: 'bar',
-                    data: {
-                        labels: ageLabels,
-                        datasets: [
-                            { label: 'MALE', data: maleData, backgroundColor: '#2dd4bf', borderRadius: 4 },
-                            { label: 'FEMALE', data: femaleData, backgroundColor: '#0ea5e9', borderRadius: 4 }
-                        ]
-                    },
-                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' } } }
+                    data: { labels: ageLabels, datasets: [
+                        { label: 'MALE', data: mData, backgroundColor: '#2dd4bf', borderRadius: 4 },
+                        { label: 'FEMALE', data: fData, backgroundColor: '#0ea5e9', borderRadius: 4 }
+                    ]},
+                    options: { responsive: true, maintainAspectRatio: false }
                 });
 
-                // 2. DEPARTMENT
+                // 2. DEPARTMENT (MULTICOLOR)
                 const deptMap = {};
                 data.forEach(s => deptMap[s.primary_objective] = (deptMap[s.primary_objective] || 0) + 1);
                 new Chart(document.getElementById('deptChart'), {
                     type: 'bar',
-                    data: { labels: Object.keys(deptMap), datasets: [{ data: Object.values(deptMap), backgroundColor: '#6366f1', borderRadius: 6 }] },
+                    data: { labels: Object.keys(deptMap), datasets: [{ data: Object.values(deptMap), backgroundColor: COLORS, borderRadius: 6 }] },
                     options: { plugins: { legend: { display: false } } }
                 });
 
-                // 3. LOCATION
-                const locMap = {};
-                data.forEach(s => locMap[s.location] = (locMap[s.location] || 0) + 1);
-                const sortedLocs = Object.entries(locMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
-                new Chart(document.getElementById('locationChart'), {
-                    type: 'bar',
-                    data: { labels: sortedLocs.map(l => l[0]), datasets: [{ data: sortedLocs.map(l => l[1]), backgroundColor: COLORS, borderRadius: 6 }] },
-                    options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+                // 3. OCCUPATION PIE CHART
+                const occMap = {};
+                data.forEach(s => occMap[s.occupation] = (occMap[s.occupation] || 0) + 1);
+                new Chart(document.getElementById('occChart'), {
+                    type: 'pie',
+                    data: { labels: Object.keys(occMap), datasets: [{ data: Object.values(occMap), backgroundColor: COLORS }] },
+                    options: { plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 10 } } } } }
                 });
 
                 // 4. SENTIMENT (DOUGHNUT)
@@ -178,7 +142,17 @@
                     options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
                 });
 
-            } catch (err) { console.error("Chart Render Error:", err); }
+                // 5. LOCATION (HORIZONTAL)
+                const locMap = {};
+                data.forEach(s => locMap[s.location] = (locMap[s.location] || 0) + 1);
+                const sortedLocs = Object.entries(locMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+                new Chart(document.getElementById('locationChart'), {
+                    type: 'bar',
+                    data: { labels: sortedLocs.map(l => l[0]), datasets: [{ data: sortedLocs.map(l => l[1]), backgroundColor: COLORS, borderRadius: 6 }] },
+                    options: { indexAxis: 'y', plugins: { legend: { display: false } } }
+                });
+
+            } catch (err) { console.error("Fetch/Render error:", err); }
         }
     </script>
 </body>
