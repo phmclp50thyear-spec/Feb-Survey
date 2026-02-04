@@ -30,15 +30,15 @@
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-6">
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4" id="statsRow">
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Total</p><h3 id="totalCount" class="text-2xl font-black italic text-slate-800">--</h3></div>
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Total</p><h3 id="totalCount" class="text-2xl font-black italic">--</h3></div>
             <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Satisfaction</p><h3 id="posRate" class="text-2xl font-black italic text-green-500">--</h3></div>
             <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">Repeat</p><h3 id="repeatCount" class="text-2xl font-black italic text-indigo-600">--</h3></div>
-            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">New</p><h3 id="newCount" class="text-2xl font-black italic text-slate-400">--</h3></div>
+            <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase">New</p><h3 id="newCount" class="text-2xl font-black italic text-slate-800">--</h3></div>
         </div>
 
         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-            <h4 class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest">Demographic Comparison</h4>
+            <h4 class="text-xs font-black text-slate-400 uppercase mb-4 tracking-widest text-center md:text-left">Demographic Comparison</h4>
             <div style="position: relative; height:300px; width:100%"><canvas id="demoChart"></canvas></div>
         </div>
 
@@ -48,19 +48,20 @@
                 <div style="position: relative; height:250px;"><canvas id="deptChart"></canvas></div>
             </div>
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Occupation Pie Chart</h4>
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Occupation Distribution</h4>
                 <div style="position: relative; height:250px;"><canvas id="occChart"></canvas></div>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Sentiment Doughnut</h4>
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Sentiment Score</h4>
                 <div style="position: relative; height:200px;"><canvas id="sentimentChart"></canvas></div>
             </div>
-            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Top Locations</h4>
-                <div style="position: relative; height:200px;"><canvas id="locationChart"></canvas></div>
+            <div class="lg:col-span-2 bg-white p-6 rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Latest Feedback</h4>
+                <div id="feedbackContainer" class="space-y-3 max-h-[250px] overflow-y-auto pr-2">
+                    </div>
             </div>
         </div>
     </main>
@@ -71,7 +72,6 @@
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
         const COLORS = ['#6366f1', '#8b5cf6', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#f43f5e', '#14b8a6'];
 
-        // Safety: Ensure page is ready
         window.onload = async () => {
             const { data: { user } } = await supabaseClient.auth.getUser();
             if (!user) { window.location.href = 'index.html'; return; }
@@ -80,31 +80,46 @@
 
         async function fetchData() {
             try {
-                const { data, error } = await supabaseClient.from('survey_submissions').select('*');
+                const { data, error } = await supabaseClient.from('survey_submissions').select('*').order('created_at', { ascending: false });
                 if (error || !data) return;
 
-                // Basic Stats
+                // STATS
                 const total = data.length;
                 const pos = data.filter(s => s.experience_rating === 'Positive').length;
                 const rep = data.filter(s => s.patient_type === 'Repeat').length;
-                
                 document.getElementById('totalCount').innerText = total;
                 document.getElementById('posRate').innerText = total > 0 ? Math.round((pos/total)*100) + '%' : '0%';
                 document.getElementById('repeatCount').innerText = rep;
                 document.getElementById('newCount').innerText = total - rep;
 
-                // 1. DEMOGRAPHIC (Side-by-Side Bar)
-                const ageGroups = ['0-19', '20-39', '40-59', '60-79', '80-90'];
-                const mArr = [0,0,0,0,0], fArr = [0,0,0,0,0];
+                // FEEDBACK INJECTION
+                const feedBox = document.getElementById('feedbackContainer');
+                feedBox.innerHTML = data.slice(0, 10).map(item => `
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${item.experience_rating === 'Positive' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">
+                                ${item.experience_rating.toUpperCase()}
+                            </span>
+                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">${item.primary_objective}</span>
+                        </div>
+                        <p class="text-xs text-slate-600 italic leading-relaxed">"${item.feedback_details || 'No specific comments provided.'}"</p>
+                    </div>
+                `).join('');
+
+                Chart.defaults.color = '#94a3b8';
+
+                // 1. DEMOGRAPHIC
+                const ageL = ['0-19', '20-39', '40-59', '60-79', '80-90'];
+                const mD = [0,0,0,0,0], fD = [0,0,0,0,0];
                 data.forEach(s => {
                     let i = s.age <= 19 ? 0 : s.age <= 39 ? 1 : s.age <= 59 ? 2 : s.age <= 79 ? 3 : 4;
-                    if (s.gender === 'Male') mArr[i]++; else fArr[i]++;
+                    if (s.gender === 'Male') mD[i]++; else fD[i]++;
                 });
                 new Chart(document.getElementById('demoChart'), {
                     type: 'bar',
-                    data: { labels: ageGroups, datasets: [
-                        { label: 'MALE', data: mArr, backgroundColor: '#2dd4bf', borderRadius: 4 },
-                        { label: 'FEMALE', data: fArr, backgroundColor: '#0ea5e9', borderRadius: 4 }
+                    data: { labels: ageL, datasets: [
+                        { label: 'MALE', data: mD, backgroundColor: '#2dd4bf', borderRadius: 4 },
+                        { label: 'FEMALE', data: fD, backgroundColor: '#0ea5e9', borderRadius: 4 }
                     ]},
                     options: { responsive: true, maintainAspectRatio: false }
                 });
@@ -124,7 +139,7 @@
                 new Chart(document.getElementById('occChart'), {
                     type: 'pie',
                     data: { labels: Object.keys(oMap), datasets: [{ data: Object.values(oMap), backgroundColor: COLORS }]},
-                    options: { responsive: true, maintainAspectRatio: false }
+                    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 9 }}} }}
                 });
 
                 // 4. SENTIMENT DOUGHNUT
@@ -134,17 +149,7 @@
                     options: { responsive: true, maintainAspectRatio: false, cutout: '70%' }
                 });
 
-                // 5. LOCATION (Horizontal)
-                const lMap = {};
-                data.forEach(s => lMap[s.location] = (lMap[s.location] || 0) + 1);
-                const lSrt = Object.entries(lMap).sort((a,b) => b[1]-a[1]).slice(0, 5);
-                new Chart(document.getElementById('locationChart'), {
-                    type: 'bar',
-                    data: { labels: lSrt.map(x => x[0]), datasets: [{ data: lSrt.map(x => x[1]), backgroundColor: COLORS, borderRadius: 5 }]},
-                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}}
-                });
-
-            } catch (e) { console.error("Error drawing charts:", e); }
+            } catch (e) { console.error("Data Error:", e); }
         }
     </script>
 </body>
