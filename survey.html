@@ -153,38 +153,154 @@
 
             const fd = new FormData(form);
             
-            // 1. Save Submission
-            const { data: sub, error: subErr } = await supabaseClient
-                .from('survey_submissions')
-                .insert([{
-                    age: fd.get('age'),
-                    gender: fd.get('gender'),
-                    location: fd.get('location'),
-                    occupation: fd.get('occupation'),
-                    patient_type: fd.get('patient_type'),
-                    primary_objective: fd.get('primary_objective')
-                }]).select();
+            // Handle Submit
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.innerText = 'Processing...';
+    submitBtn.disabled = true;
 
-            if (subErr) {
-                alert('Error: ' + subErr.message);
-            } else {
-                // 2. Save Response
-                await supabaseClient.from('survey_responses').insert([{
-                    submission_id: sub[0].id,
-                    rating_response: fd.get('experience'),
-                    feedback_text: fd.get('feedback_details')
-                }]);
+    const fd = new FormData(form);
+    
+    // Get the current logged-in user's ID
+    const { data: { user } } = await supabaseClient.auth.getUser();
 
-                alert('Survey saved successfully!');
-                form.reset();
-                form.classList.remove('open');
-                document.getElementById('reasonsBox').classList.add('hidden');
-            }
-            submitBtn.innerText = 'Save Survey Results';
-            submitBtn.disabled = false;
-        });
+    // 1. Save Submission
+    const { data: sub, error: subErr } = await supabaseClient
+        .from('survey_submissions')
+        .insert([{
+            age: fd.get('age'),
+            gender: fd.get('gender'),
+            location: fd.get('location'),
+            occupation: fd.get('occupation'),
+            patient_type: fd.get('patient_type'),
+            primary_objective: fd.get('primary_objective')
+        }]).select();
+
+    if (subErr) {
+        console.error("Submission Error Details:", subErr);
+        alert('Error: ' + subErr.message);
+    } else {
+        // 2. Save Response (Syntax Fixed Here)
+        const { error: respErr } = await supabaseClient
+            .from('survey_responses')
+            .insert([{
+                submission_id: sub[0].id,
+                rating_response: fd.get('experience'),
+                feedback_text: fd.get('feedback_details')
+            }]);
+
+        if (respErr) {
+            console.error("Response Error Details:", respErr);
+            alert('Submission saved, but feedback failed: ' + respErr.message);
+        } else {
+            alert('Survey saved successfully!');
+            form.reset();
+            form.classList.remove('open');
+            document.getElementById('reasonsBox').classList.add('hidden');
+        }
+    }
+    submitBtn.innerText = 'Save Survey Results';
+    submitBtn.disabled = false;
+});// Handle Submit
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.innerText = 'Processing...';
+    submitBtn.disabled = true;
+
+    const fd = new FormData(form);
+    
+    // Get the current logged-in user's ID
+    const { data: { user } } = await supabaseClient.auth.getUser();
+
+    // 1. Save Submission
+    const { data: sub, error: subErr } = await supabaseClient
+        .from('survey_submissions')
+        .insert([{
+            age: fd.get('age'),
+            gender: fd.get('gender'),
+            location: fd.get('location'),
+            occupation: fd.get('occupation'),
+            patient_type: fd.get('patient_type'),
+            primary_objective: fd.get('primary_objective')
+        }]).select();
+
+    if (subErr) {
+        console.error("Submission Error Details:", subErr);
+        alert('Error: ' + subErr.message);
+    } else {
+        // 2. Save Response (Syntax Fixed Here)
+        const { error: respErr } = await supabaseClient
+            .from('survey_responses')
+            .insert([{
+                submission_id: sub[0].id,
+                rating_response: fd.get('experience'),
+                feedback_text: fd.get('feedback_details')
+            }]);
+
+        if (respErr) {
+            console.error("Response Error Details:", respErr);
+            alert('Submission saved, but feedback failed: ' + respErr.message);
+        } else {
+            alert('Survey saved successfully!');
+            form.reset();
+            form.classList.remove('open');
+            document.getElementById('reasonsBox').classList.add('hidden');
+        }
+    }
+    submitBtn.innerText = 'Save Survey Results';
+    submitBtn.disabled = false;
+});// Handle Submit
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    submitBtn.innerText = 'Processing...';
+    submitBtn.disabled = true;
+
+    const fd = new FormData(form);
+    
+    // Get the current logged-in user's ID
+    const { data: { user } } = await supabaseClient.auth.getUser();
+
+    // 1. Save Submission
+    const { data: sub, error: subErr } = await supabaseClient
+        .from('survey_submissions')
+        .insert([{
+            age: fd.get('age'),
+            gender: fd.get('gender'),
+            location: fd.get('location'),
+            occupation: fd.get('occupation'),
+            patient_type: fd.get('patient_type'),
+            primary_objective: fd.get('primary_objective')
+        }]).select();
+
+    if (subErr) {
+        console.error("Submission Error Details:", subErr);
+        alert('Error: ' + subErr.message);
+    } else {
+        // 2. Save Response (Syntax Fixed Here)
+        const { error: respErr } = await supabaseClient
+            .from('survey_responses')
+            .insert([{
+                submission_id: sub[0].id,
+                rating_response: fd.get('experience'),
+                feedback_text: fd.get('feedback_details')
+            }]);
+
+        if (respErr) {
+            console.error("Response Error Details:", respErr);
+            alert('Submission saved, but feedback failed: ' + respErr.message);
+        } else {
+            alert('Survey saved successfully!');
+            form.reset();
+            form.classList.remove('open');
+            document.getElementById('reasonsBox').classList.add('hidden');
+        }
+    }
+    submitBtn.innerText = 'Save Survey Results';
+    submitBtn.disabled = false;
+});
 
         loadDepts();
     </script>
 </body>
 </html>
+
