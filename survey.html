@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patient Survey | PHMC</title>
+    <title>Patient Survey | PHMC Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
@@ -18,7 +18,7 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 min-h-screen">
+<body class="bg-slate-50 min-h-screen font-sans">
 
     <script>
         const SB_URL = 'https://osfwbhcqibhtobaoojrv.supabase.co';
@@ -26,15 +26,17 @@
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
 
         async function protectPage() {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) window.location.href = 'index.html';
+            const { data: { user }, error } = await supabaseClient.auth.getUser();
+            if (error || !user) {
+                window.location.href = 'index.html';
+            }
         }
         protectPage();
     </script>
 
     <nav class="bg-white border-b p-4 mb-8 shadow-sm">
         <div class="max-w-4xl mx-auto flex justify-between items-center">
-            <h1 class="font-black text-indigo-600 tracking-tighter text-xl">PHMC SURVEY</h1>
+            <h1 class="font-black text-indigo-600 tracking-tighter text-xl uppercase">PHMC Survey Portal</h1>
             <button onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" 
                     class="bg-red-50 text-red-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-red-100 transition">
                 Logout
@@ -47,78 +49,81 @@
             <button id="toggleForm" class="bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-full shadow-xl transition-all hover:rotate-90 active:scale-90 flex items-center justify-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             </button>
-            <span class="absolute left-16 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs font-bold px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
-                ADD SURVEY
+            <span class="absolute left-16 top-1/2 -translate-y-1/2 bg-gray-900 text-white text-xs font-bold px-3 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none uppercase tracking-widest">
+                Add New Survey
             </span>
         </div>
 
-        <form id="surveyForm" class="collapsible-content bg-white rounded-2xl shadow-xl border border-gray-100">
+        <form id="surveyForm" class="collapsible-content bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
             <div class="p-6 md:p-10 space-y-8">
-                <h2 class="text-2xl font-bold text-gray-800 border-b pb-4">New Patient Entry</h2>
+                <header class="border-b border-gray-100 pb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">New Patient Entry</h2>
+                    <p class="text-sm text-gray-500">All fields are required for hospital analytics.</p>
+                </header>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Age</label>
-                        <input type="number" name="age" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-400 uppercase">Age</label>
+                        <input type="number" name="age" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Gender</label>
-                        <select name="gender" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-400 uppercase">Gender</label>
+                        <select name="gender" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                             <option value="">Select...</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
                             <option value="Other">Other</option>
                         </select>
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Location</label>
-                        <input type="text" name="location" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-400 uppercase">Location</label>
+                        <input type="text" name="location" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Occupation</label>
-                        <input type="text" name="occupation" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 outline-none">
+                    <div class="space-y-1">
+                        <label class="block text-xs font-bold text-gray-400 uppercase">Occupation</label>
+                        <input type="text" name="occupation" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 outline-none transition-all">
                     </div>
                 </div>
 
-                <div class="flex flex-wrap gap-6 items-center bg-slate-50 p-4 rounded-xl">
-                    <span class="text-sm font-bold text-slate-500 uppercase">Patient Type:</span>
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="radio" name="patient_type" value="New" required class="w-4 h-4 text-indigo-600">
-                        <span class="text-gray-700 font-medium">New Patient</span>
+                <div class="flex flex-wrap gap-6 items-center bg-slate-50 p-5 rounded-xl border border-slate-100">
+                    <span class="text-sm font-bold text-slate-500 uppercase">Patient Category:</span>
+                    <label class="flex items-center space-x-2 cursor-pointer group">
+                        <input type="radio" name="patient_type" value="New" required class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-gray-700 font-medium group-hover:text-indigo-600 transition-colors">New Patient</span>
                     </label>
-                    <label class="flex items-center space-x-2 cursor-pointer">
-                        <input type="radio" name="patient_type" value="Repeat" class="w-4 h-4 text-indigo-600">
-                        <span class="text-gray-700 font-medium">Repeat Patient</span>
+                    <label class="flex items-center space-x-2 cursor-pointer group">
+                        <input type="radio" name="patient_type" value="Repeat" class="w-4 h-4 text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-gray-700 font-medium group-hover:text-indigo-600 transition-colors">Repeat Patient</span>
                     </label>
                 </div>
 
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-2">Primary objective of visit:</label>
-                    <select id="departmentDropdown" name="primary_objective" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 focus:ring-2 focus:ring-indigo-500 outline-none">
-                        <option value="">Loading list...</option>
+                <div class="space-y-2">
+                    <label class="block text-sm font-bold text-gray-700">Primary objective of visit:</label>
+                    <select id="departmentDropdown" name="primary_objective" required class="w-full border-gray-200 rounded-xl bg-gray-50 p-4 focus:ring-2 focus:ring-indigo-500 outline-none transition-all appearance-none cursor-pointer">
+                        <option value="">Fetching Departments...</option>
                     </select>
                 </div>
 
-                <div class="pt-6 border-t border-gray-100">
-                    <p class="text-sm font-bold text-gray-700 mb-4">Experience at Perpetual Help & Medical Center:</p>
-                    <div class="flex gap-4">
-                        <label class="flex-1 text-center p-3 border rounded-xl cursor-pointer hover:bg-green-50 transition-colors has-[:checked]:bg-green-100 has-[:checked]:border-green-500">
+                <div class="pt-6 border-t border-gray-100 space-y-6">
+                    <p class="text-md font-bold text-gray-700">How is the patient experience at Perpetual Help?</p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <label class="flex-1 text-center p-4 border-2 rounded-2xl cursor-pointer hover:bg-green-50 transition-all has-[:checked]:bg-green-100 has-[:checked]:border-green-500 group">
                             <input type="radio" name="experience" value="Positive" required onclick="document.getElementById('reasonsBox').classList.remove('hidden')" class="hidden">
-                            <span class="font-bold text-green-700">Positive</span>
+                            <span class="font-black text-gray-400 group-hover:text-green-600 transition-colors">POSITIVE RESPONSE</span>
                         </label>
-                        <label class="flex-1 text-center p-3 border rounded-xl cursor-pointer hover:bg-red-50 transition-colors has-[:checked]:bg-red-100 has-[:checked]:border-red-500">
+                        <label class="flex-1 text-center p-4 border-2 rounded-2xl cursor-pointer hover:bg-red-50 transition-all has-[:checked]:bg-red-100 has-[:checked]:border-red-500 group">
                             <input type="radio" name="experience" value="Negative" onclick="document.getElementById('reasonsBox').classList.remove('hidden')" class="hidden">
-                            <span class="font-bold text-red-700">Negative</span>
+                            <span class="font-black text-gray-400 group-hover:text-red-600 transition-colors">NEGATIVE RESPONSE</span>
                         </label>
                     </div>
                     
-                    <div id="reasonsBox" class="hidden mt-4">
-                        <label class="block text-xs font-bold text-gray-400 uppercase mb-1">Reason(s) for your response:</label>
-                        <textarea name="feedback_details" rows="3" class="w-full border-gray-200 rounded-xl bg-gray-50 p-3 outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                    <div id="reasonsBox" class="hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                        <label class="block text-xs font-bold text-gray-400 uppercase mb-2">Detailed Reason(s) for the feedback:</label>
+                        <textarea name="feedback_details" rows="4" class="w-full border-gray-200 rounded-xl bg-gray-50 p-4 outline-none focus:ring-2 focus:ring-indigo-500 transition-all" placeholder="Enter patient comments here..."></textarea>
                     </div>
                 </div>
 
-                <button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl hover:bg-indigo-700 shadow-lg transition-all active:scale-[0.98]">
+                <button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white font-black uppercase tracking-widest py-5 rounded-xl hover:bg-indigo-700 shadow-xl transition-all active:scale-[0.98] disabled:opacity-50">
                     Save Survey Results
                 </button>
             </div>
@@ -131,176 +136,67 @@
         const deptDropdown = document.getElementById('departmentDropdown');
         const submitBtn = document.getElementById('submitBtn');
 
-        // Toggle visibility
+        // UI: Toggle form visibility
         toggleBtn.addEventListener('click', () => {
             form.classList.toggle('open');
         });
 
-        // Load Depts from your table
+        // DATA: Load Departments from Supabase
         async function loadDepts() {
-            const { data } = await supabaseClient.from('hospital_departments').select('name').eq('is_active', true).order('name');
+            const { data, error } = await supabaseClient
+                .from('hospital_departments')
+                .select('name')
+                .eq('is_active', true)
+                .order('name');
+                
             if (data) {
                 deptDropdown.innerHTML = '<option value="">Select Department</option>' + 
                     data.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+            } else {
+                deptDropdown.innerHTML = '<option value="">Error loading list</option>';
             }
         }
 
-        // Handle Submit
+        // ACTION: Handle Single-Table Submit
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
-            submitBtn.innerText = 'Processing...';
+            
+            // UI Loading State
+            submitBtn.innerText = 'UPLOADING TO DATABASE...';
             submitBtn.disabled = true;
 
             const fd = new FormData(form);
             
-            // Handle Submit
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    submitBtn.innerText = 'Processing...';
-    submitBtn.disabled = true;
+            // One single insert for all 8 fields
+            const { data, error } = await supabaseClient
+                .from('survey_submissions')
+                .insert([{
+                    age: parseInt(fd.get('age')), 
+                    gender: fd.get('gender'),
+                    location: fd.get('location'),
+                    occupation: fd.get('occupation'),
+                    patient_type: fd.get('patient_type'),
+                    primary_objective: fd.get('primary_objective'),
+                    experience_rating: fd.get('experience'),    
+                    feedback_details: fd.get('feedback_details')
+                }]);
 
-    const fd = new FormData(form);
-    
-    // Get the current logged-in user's ID
-    const { data: { user } } = await supabaseClient.auth.getUser();
+            if (error) {
+                console.error("Submission Error:", error);
+                alert('RLS or Database Error: ' + error.message);
+            } else {
+                alert('SUCCESS: Survey record saved to PHMC database.');
+                form.reset();
+                form.classList.remove('open');
+                document.getElementById('reasonsBox').classList.add('hidden');
+            }
 
-    // 1. Save Submission
-    const { data: sub, error: subErr } = await supabaseClient
-        .from('survey_submissions')
-        .insert([{
-            age: fd.get('age'),
-            gender: fd.get('gender'),
-            location: fd.get('location'),
-            occupation: fd.get('occupation'),
-            patient_type: fd.get('patient_type'),
-            primary_objective: fd.get('primary_objective')
-        }]).select();
-
-    if (subErr) {
-        console.error("Submission Error Details:", subErr);
-        alert('Error: ' + subErr.message);
-    } else {
-        // 2. Save Response (Syntax Fixed Here)
-        const { error: respErr } = await supabaseClient
-            .from('survey_responses')
-            .insert([{
-                submission_id: sub[0].id,
-                rating_response: fd.get('experience'),
-                feedback_text: fd.get('feedback_details')
-            }]);
-
-        if (respErr) {
-            console.error("Response Error Details:", respErr);
-            alert('Submission saved, but feedback failed: ' + respErr.message);
-        } else {
-            alert('Survey saved successfully!');
-            form.reset();
-            form.classList.remove('open');
-            document.getElementById('reasonsBox').classList.add('hidden');
-        }
-    }
-    submitBtn.innerText = 'Save Survey Results';
-    submitBtn.disabled = false;
-});// Handle Submit
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    submitBtn.innerText = 'Processing...';
-    submitBtn.disabled = true;
-
-    const fd = new FormData(form);
-    
-    // Get the current logged-in user's ID
-    const { data: { user } } = await supabaseClient.auth.getUser();
-
-    // 1. Save Submission
-    const { data: sub, error: subErr } = await supabaseClient
-        .from('survey_submissions')
-        .insert([{
-            age: fd.get('age'),
-            gender: fd.get('gender'),
-            location: fd.get('location'),
-            occupation: fd.get('occupation'),
-            patient_type: fd.get('patient_type'),
-            primary_objective: fd.get('primary_objective')
-        }]).select();
-
-    if (subErr) {
-        console.error("Submission Error Details:", subErr);
-        alert('Error: ' + subErr.message);
-    } else {
-        // 2. Save Response (Syntax Fixed Here)
-        const { error: respErr } = await supabaseClient
-            .from('survey_responses')
-            .insert([{
-                submission_id: sub[0].id,
-                rating_response: fd.get('experience'),
-                feedback_text: fd.get('feedback_details')
-            }]);
-
-        if (respErr) {
-            console.error("Response Error Details:", respErr);
-            alert('Submission saved, but feedback failed: ' + respErr.message);
-        } else {
-            alert('Survey saved successfully!');
-            form.reset();
-            form.classList.remove('open');
-            document.getElementById('reasonsBox').classList.add('hidden');
-        }
-    }
-    submitBtn.innerText = 'Save Survey Results';
-    submitBtn.disabled = false;
-});// Handle Submit
-form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    submitBtn.innerText = 'Processing...';
-    submitBtn.disabled = true;
-
-    const fd = new FormData(form);
-    
-    // Get the current logged-in user's ID
-    const { data: { user } } = await supabaseClient.auth.getUser();
-
-    // 1. Save Submission
-    const { data: sub, error: subErr } = await supabaseClient
-        .from('survey_submissions')
-        .insert([{
-            age: fd.get('age'),
-            gender: fd.get('gender'),
-            location: fd.get('location'),
-            occupation: fd.get('occupation'),
-            patient_type: fd.get('patient_type'),
-            primary_objective: fd.get('primary_objective')
-        }]).select();
-
-    if (subErr) {
-        console.error("Submission Error Details:", subErr);
-        alert('Error: ' + subErr.message);
-    } else {
-        // 2. Save Response (Syntax Fixed Here)
-        const { error: respErr } = await supabaseClient
-            .from('survey_responses')
-            .insert([{
-                submission_id: sub[0].id,
-                rating_response: fd.get('experience'),
-                feedback_text: fd.get('feedback_details')
-            }]);
-
-        if (respErr) {
-            console.error("Response Error Details:", respErr);
-            alert('Submission saved, but feedback failed: ' + respErr.message);
-        } else {
-            alert('Survey saved successfully!');
-            form.reset();
-            form.classList.remove('open');
-            document.getElementById('reasonsBox').classList.add('hidden');
-        }
-    }
-    submitBtn.innerText = 'Save Survey Results';
-    submitBtn.disabled = false;
-});
+            // Reset UI State
+            submitBtn.innerText = 'Save Survey Results';
+            submitBtn.disabled = false;
+        });
 
         loadDepts();
     </script>
 </body>
 </html>
-
