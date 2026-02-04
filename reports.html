@@ -35,16 +35,13 @@
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line></svg>
                         <span class="text-[11px] md:text-sm">Entry</span>
                     </a>
-                    <a href="reports.html" class="text-sm font-bold text-indigo-600 flex items-center gap-1.5 transition-colors">
+                    <a href="reports.html" class="text-sm font-bold text-indigo-600 flex items-center gap-1.5">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
                         <span class="text-[11px] md:text-sm">Reports</span>
                     </a>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
-                <span id="userDisplay" class="hidden md:inline text-[10px] font-medium text-slate-400 italic">...</span>
-                <button onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="bg-slate-100 text-[10px] md:text-xs px-3 py-1.5 rounded-full font-bold">Logout</button>
-            </div>
+            <button onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="bg-slate-100 text-[10px] md:text-xs px-3 py-1.5 rounded-full font-bold">Logout</button>
         </div>
     </nav>
 
@@ -56,25 +53,32 @@
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm"><p class="text-[10px] font-black text-slate-400 uppercase mb-1">New</p><h3 id="newCount" class="text-3xl font-black italic text-slate-800">--</h3></div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-6">Demographics (Gender x Age)</h4>
-                <canvas id="demoChart" class="max-h-64"></canvas>
-            </div>
-            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-6">Volume by Department</h4>
-                <canvas id="deptChart" class="max-h-64"></canvas>
+        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <h4 class="text-xs font-black text-slate-400 uppercase mb-6 tracking-widest">Demographic Comparison</h4>
+            <div class="h-80 w-full">
+                <canvas id="demoChart"></canvas>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-6">Top Locations</h4>
-                <canvas id="locationChart" class="max-h-64"></canvas>
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Volume by Department</h4>
+                <canvas id="deptChart"></canvas>
             </div>
-            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Latest Feedback</h4>
-                <div class="space-y-4" id="feedbackList"></div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Top Patient Locations</h4>
+                <canvas id="locationChart"></canvas>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4">Sentiment Score</h4>
+                <canvas id="sentimentChart" class="max-h-48"></canvas>
+            </div>
+            <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm lg:col-span-2 overflow-hidden">
+                <h4 class="text-xs font-black text-slate-400 uppercase mb-4 px-2">Latest Patient Feedback</h4>
+                <div class="space-y-3" id="feedbackList"></div>
             </div>
         </div>
     </main>
@@ -97,69 +101,75 @@
                 document.getElementById('repeatCount').innerText = rep;
                 document.getElementById('newCount').innerText = total - rep;
 
-                // Feedback List instead of Table for stability
+                // Feedback
                 document.getElementById('feedbackList').innerHTML = data.slice(0, 4).map(row => `
-                    <div class="p-3 bg-slate-50 rounded-2xl text-sm">
-                        <div class="flex justify-between font-bold mb-1">
-                            <span class="${row.experience_rating === 'Positive' ? 'text-green-500' : 'text-red-500'}">${row.experience_rating}</span>
-                            <span class="text-slate-400 text-[10px]">${row.primary_objective}</span>
+                    <div class="p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[10px] font-bold uppercase ${row.experience_rating === 'Positive' ? 'text-green-500' : 'text-red-500'}">${row.experience_rating}</span>
+                            <span class="text-[10px] font-medium text-slate-400">${row.primary_objective}</span>
                         </div>
-                        <p class="text-slate-600 italic">"${row.feedback_details || 'No comment'}"</p>
+                        <p class="text-xs text-slate-600 italic">"${row.feedback_details || 'No additional details provided.'}"</p>
                     </div>
                 `).join('');
 
                 Chart.defaults.color = '#94a3b8';
-                Chart.defaults.font.family = 'Inter, sans-serif';
+                Chart.defaults.font.family = 'sans-serif';
 
-                // 1. Demographic Comparison (Stacked Bar)
-                const ageGroups = ['0-18', '19-35', '36-50', '51+'];
-                const maleData = [0, 0, 0, 0];
-                const femaleData = [0, 0, 0, 0];
+                // 1. DEMOGRAPHIC SIDE-BY-SIDE (Requested Style)
+                const ageLabels = ['0-19', '20-39', '40-59', '60-79', '80-90'];
+                const maleCounts = [0, 0, 0, 0, 0];
+                const femaleCounts = [0, 0, 0, 0, 0];
 
                 data.forEach(s => {
-                    let idx = s.age <= 18 ? 0 : s.age <= 35 ? 1 : s.age <= 50 ? 2 : 3;
-                    if (s.gender === 'Male') maleData[idx]++;
-                    else femaleData[idx]++;
+                    let idx = s.age <= 19 ? 0 : s.age <= 39 ? 1 : s.age <= 59 ? 2 : s.age <= 79 ? 3 : 4;
+                    if (s.gender === 'Male') maleCounts[idx]++;
+                    else femaleCounts[idx]++;
                 });
 
                 new Chart(document.getElementById('demoChart'), {
                     type: 'bar',
                     data: {
-                        labels: ageGroups,
+                        labels: ageLabels,
                         datasets: [
-                            { label: 'Male', data: maleData, backgroundColor: '#3b82f6', borderRadius: 5 },
-                            { label: 'Female', data: femaleData, backgroundColor: '#ec4899', borderRadius: 5 }
+                            { label: 'MALE', data: maleCounts, backgroundColor: '#2dd4bf', borderRadius: 4 }, // Teal-ish
+                            { label: 'FEMALE', data: femaleCounts, backgroundColor: '#0ea5e9', borderRadius: 4 } // Blue-ish
                         ]
                     },
-                    options: { scales: { x: { stacked: true }, y: { stacked: true, grid: { display: false } } } }
+                    options: { 
+                        responsive: true, 
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { weight: 'bold', size: 10 } } } },
+                        scales: { y: { beginAtZero: true, grid: { color: '#f1f5f9' } }, x: { grid: { display: false } } }
+                    }
                 });
 
-                // 2. Department Chart
+                // 2. DEPT CHART
                 const deptMap = {};
                 data.forEach(s => deptMap[s.primary_objective] = (deptMap[s.primary_objective] || 0) + 1);
                 new Chart(document.getElementById('deptChart'), {
                     type: 'bar',
-                    data: {
-                        labels: Object.keys(deptMap),
-                        datasets: [{ data: Object.values(deptMap), backgroundColor: '#6366f1', borderRadius: 8 }]
-                    },
+                    data: { labels: Object.keys(deptMap), datasets: [{ data: Object.values(deptMap), backgroundColor: '#6366f1', borderRadius: 6 }] },
                     options: { plugins: { legend: { display: false } }, scales: { y: { grid: { display: false } }, x: { grid: { display: false } } } }
                 });
 
-                // 3. Multicolored Locations
+                // 3. LOCATION CHART (Horizontal)
                 const locMap = {};
                 data.forEach(s => locMap[s.location] = (locMap[s.location] || 0) + 1);
-                const sortedLocs = Object.entries(locMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
+                const locs = Object.entries(locMap).sort((a,b) => b[1] - a[1]).slice(0, 5);
                 new Chart(document.getElementById('locationChart'), {
                     type: 'bar',
-                    data: {
-                        labels: sortedLocs.map(l => l[0]),
-                        datasets: [{ data: sortedLocs.map(l => l[1]), backgroundColor: COLORS, borderRadius: 8 }]
-                    },
+                    data: { labels: locs.map(l => l[0]), datasets: [{ data: locs.map(l => l[1]), backgroundColor: COLORS, borderRadius: 6 }] },
                     options: { indexAxis: 'y', plugins: { legend: { display: false } } }
                 });
 
-            } catch (err) { console.error("Data Fetch Error:", err); }
+                // 4. SENTIMENT DOUGHNUT (Returned)
+                new Chart(document.getElementById('sentimentChart'), {
+                    type: 'doughnut',
+                    data: { labels: ['Positive', 'Negative'], datasets: [{ data: [pos, total-pos], backgroundColor: ['#10b981', '#f43f5e'], borderWidth: 0 }] },
+                    options: { cutout: '75%', plugins: { legend: { position: 'bottom' } } }
+                });
+
+            } catch (err) { console.error("Data Error:", err); }
         }
     </script>
 </body>
