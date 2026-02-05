@@ -23,6 +23,7 @@
             if (!user) window.location.href = 'index.html';
             document.getElementById('userDisplay').innerText = user.email;
             loadDepts();
+            loadRecentFeedback(); // New: Load the table on startup
         }
         init();
     </script>
@@ -66,7 +67,15 @@
                         <option value="Female">Female</option>
                     </select>
                     <input type="text" name="location" placeholder="Location" required class="p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
-                    <input type="text" name="occupation" placeholder="Occupation" required class="p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
+                    
+                    <select name="occupation" required class="p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
+                        <option value="">Select Occupation...</option>
+                        <option value="working">Working</option>
+                        <option value="student">Student</option>
+                        <option value="pensioner">Pensioner</option>
+                        <option value="househusband/housewife">Househusband/Housewife</option>
+                        <option value="unemployed">Unemployed</option>
+                    </select>
                 </div>
 
                 <div class="bg-slate-50 p-5 rounded-2xl flex gap-6 border border-slate-100">
@@ -90,6 +99,26 @@
                 <button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white font-black uppercase tracking-widest py-5 rounded-2xl shadow-lg hover:bg-indigo-700 transition active:scale-95">Save Survey Results</button>
             </div>
         </form>
+
+        <div class="mt-12 bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-black uppercase tracking-tighter text-slate-400 text-sm">Recent Feedback Logs</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="text-[10px] uppercase tracking-widest text-slate-400 bg-slate-50">
+                            <th class="p-4">Rating</th>
+                            <th class="p-4">Dept</th>
+                            <th class="p-4">Occupation</th>
+                            <th class="p-4">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recentFeedbackBody" class="text-xs">
+                        </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -99,6 +128,29 @@
         async function loadDepts() {
             const { data } = await supabaseClient.from('hospital_departments').select('name').eq('is_active', true);
             document.getElementById('departmentDropdown').innerHTML = '<option value="">Select Department...</option>' + data.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+        }
+
+        // New Function: Load table data
+        async function loadRecentFeedback() {
+            const { data, error } = await supabaseClient
+                .from('survey_submissions')
+                .select('*')
+                .order('created_at', { ascending: false })
+                .limit(5);
+
+            if (data) {
+                const tbody = document.getElementById('recentFeedbackBody');
+                tbody.innerHTML = data.map(item => `
+                    <tr class="border-t border-slate-50 hover:bg-slate-50 transition">
+                        <td class="p-4 font-bold ${item.experience_rating === 'Positive' ? 'text-green-500' : 'text-red-500'}">
+                            ${item.experience_rating}
+                        </td>
+                        <td class="p-4 text-slate-600 font-medium">${item.primary_objective}</td>
+                        <td class="p-4 text-slate-400 italic">${item.occupation}</td>
+                        <td class="p-4 text-slate-500 truncate max-w-[200px]">${item.feedback_details || '-'}</td>
+                    </tr>
+                `).join('');
+            }
         }
 
         form.onsubmit = async (e) => {
@@ -119,7 +171,13 @@
             }]);
 
             if (error) alert(error.message);
-            else { alert('Record Saved Successfully!'); form.reset(); form.classList.remove('open'); document.getElementById('reasonsBox').classList.add('hidden'); }
+            else { 
+                alert('Record Saved Successfully!'); 
+                form.reset(); 
+                form.classList.remove('open'); 
+                document.getElementById('reasonsBox').classList.add('hidden');
+                loadRecentFeedback(); // Refresh table after saving
+            }
             btn.innerText = 'Save Survey Results'; btn.disabled = false;
         };
     </script>
