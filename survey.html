@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PHMC | New Survey</title>
+    <title>PHMC | Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <style>
-        .collapsible-content { max-height: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0, 1, 0, 1); }
-        .collapsible-content.open { max-height: 2000px; transition: all 0.5s cubic-bezier(1, 0, 1, 0); }
+        .collapsible-content { max-height: 0; overflow: hidden; transition: all 0.5s ease-in-out; }
+        .collapsible-content.open { max-height: 2000px; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800">
@@ -23,53 +23,42 @@
             if (!user) window.location.href = 'index.html';
             document.getElementById('userDisplay').innerText = user.email;
             loadDepts();
-            loadRecentFeedback(); // New: Load the table on startup
+            loadRecentFeedback();
         }
         init();
     </script>
 
-    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 p-3 md:p-4 shadow-sm">
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 p-4 shadow-sm">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-4 md:gap-8">
-                <h1 class="font-black text-indigo-600 tracking-tighter text-lg md:text-xl uppercase">PHMC</h1>
-                <div class="flex gap-4 md:gap-6">
-                    <a href="survey.html" class="text-sm font-bold text-indigo-600 flex items-center gap-1.5 transition-colors">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line></svg>
-                        <span class="text-[11px] md:text-sm">Entry</span>
-                    </a>
-                    <a href="reports.html" class="text-sm font-bold text-slate-400 hover:text-indigo-600 transition flex items-center gap-1.5">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                        <span class="text-[11px] md:text-sm">Reports</span>
-                    </a>
-                </div>
-            </div>
-            <div class="flex items-center gap-3">
-                <span id="userDisplay" class="hidden md:inline text-[10px] font-medium text-slate-400 italic">...</span>
-                <button onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="bg-slate-100 text-[10px] md:text-xs px-3 py-1.5 rounded-full font-bold hover:bg-red-50 hover:text-red-600 transition">Logout</button>
+            <h1 class="font-black text-indigo-600 text-xl uppercase">PHMC</h1>
+            <div class="flex items-center gap-4">
+                <span id="userDisplay" class="text-xs text-slate-400 italic">...</span>
+                <button onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="bg-slate-100 text-xs px-4 py-2 rounded-full font-bold">Logout</button>
             </div>
         </div>
     </nav>
 
-    <div class="max-w-4xl mx-auto p-4 md:p-8">
-        <button id="toggleForm" class="bg-indigo-600 text-white p-4 rounded-full shadow-xl hover:rotate-90 transition-all mb-8">
-            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        </button>
+    <div class="max-w-5xl mx-auto p-4 md:p-8">
+        <div class="flex justify-between items-center mb-8">
+            <button id="toggleForm" class="bg-indigo-600 text-white p-4 rounded-full shadow-xl hover:scale-110 transition-transform">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            </button>
+            <h2 id="formTitle" class="text-sm font-black text-slate-400 uppercase tracking-[0.2em]">Patient Entry Mode</h2>
+        </div>
 
-        <form id="surveyForm" class="collapsible-content bg-white rounded-3xl shadow-xl border border-slate-100">
-            <div class="p-6 md:p-10 space-y-8">
-                <h2 class="text-2xl font-bold text-slate-800 border-b pb-4 italic tracking-tight">New Patient Entry</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <input type="number" name="age" placeholder="Age" required class="p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
-                    <select name="gender" required class="p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
+        <form id="surveyForm" class="collapsible-content bg-white rounded-3xl shadow-xl border border-slate-100 mb-12">
+            <input type="hidden" name="edit_id" id="edit_id">
+            <div class="p-6 md:p-10 space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="number" name="age" id="age" placeholder="Age" required class="p-4 bg-slate-50 rounded-2xl border-none focus:ring-2 focus:ring-indigo-500">
+                    <select name="gender" id="gender" required class="p-4 bg-slate-50 rounded-2xl border-none">
                         <option value="">Gender...</option>
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
                     </select>
-                    <input type="text" name="location" placeholder="Location" required class="p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
-                    
-                    <select name="occupation" required class="p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none focus:ring-2 focus:ring-indigo-500">
-                        <option value="">Select Occupation...</option>
+                    <input type="text" name="location" id="location" placeholder="Location" required class="p-4 bg-slate-50 rounded-2xl border-none">
+                    <select name="occupation" id="occupation" required class="p-4 bg-slate-50 rounded-2xl border-none">
+                        <option value="">Occupation...</option>
                         <option value="working">Working</option>
                         <option value="student">Student</option>
                         <option value="pensioner">Pensioner</option>
@@ -78,88 +67,108 @@
                     </select>
                 </div>
 
-                <div class="bg-slate-50 p-5 rounded-2xl flex gap-6 border border-slate-100">
-                    <label class="flex items-center gap-2 font-medium cursor-pointer"><input type="radio" name="patient_type" value="New" required> New Patient</label>
-                    <label class="flex items-center gap-2 font-medium cursor-pointer"><input type="radio" name="patient_type" value="Repeat"> Repeat Patient</label>
+                <div class="bg-slate-50 p-4 rounded-2xl flex gap-6">
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="patient_type" value="New" id="typeNew" required> New</label>
+                    <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="patient_type" value="Repeat" id="typeRepeat"> Repeat</label>
                 </div>
 
-                <select id="departmentDropdown" name="primary_objective" required class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none appearance-none"></select>
+                <select id="departmentDropdown" name="primary_objective" required class="w-full p-4 bg-slate-50 rounded-2xl border-none"></select>
 
-                <div class="pt-6 border-t border-slate-100">
-                    <p class="font-bold mb-4 text-slate-500 text-sm uppercase tracking-widest">Experience Rating</p>
+                <div>
                     <div class="flex gap-4">
-                        <label class="flex-1 p-4 border border-slate-200 rounded-2xl text-center cursor-pointer font-bold transition-all has-[:checked]:bg-green-100 has-[:checked]:border-green-500"><input type="radio" name="experience" value="Positive" required class="hidden" onclick="document.getElementById('reasonsBox').classList.remove('hidden')">Positive</label>
-                        <label class="flex-1 p-4 border border-slate-200 rounded-2xl text-center cursor-pointer font-bold transition-all has-[:checked]:bg-red-100 has-[:checked]:border-red-500"><input type="radio" name="experience" value="Negative" class="hidden" onclick="document.getElementById('reasonsBox').classList.remove('hidden')">Negative</label>
+                        <label class="flex-1 p-4 border rounded-2xl text-center cursor-pointer font-bold has-[:checked]:bg-green-50 has-[:checked]:border-green-500"><input type="radio" name="experience" value="Positive" id="expPos" required class="hidden">Positive</label>
+                        <label class="flex-1 p-4 border rounded-2xl text-center cursor-pointer font-bold has-[:checked]:bg-red-50 has-[:checked]:border-red-500"><input type="radio" name="experience" value="Negative" id="expNeg" class="hidden">Negative</label>
                     </div>
-                    <div id="reasonsBox" class="hidden mt-4">
-                        <textarea name="feedback_details" placeholder="Detailed feedback..." rows="3" class="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl outline-none"></textarea>
-                    </div>
+                    <textarea name="feedback_details" id="feedback_details" placeholder="Feedback notes..." rows="2" class="w-full mt-4 p-4 bg-slate-50 rounded-2xl border-none"></textarea>
                 </div>
 
-                <button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white font-black uppercase tracking-widest py-5 rounded-2xl shadow-lg hover:bg-indigo-700 transition active:scale-95">Save Survey Results</button>
+                <button type="submit" id="submitBtn" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl">Submit Data</button>
             </div>
         </form>
 
-        <div class="mt-12 bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
-            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-                <h3 class="font-black uppercase tracking-tighter text-slate-400 text-sm">Recent Feedback Logs</h3>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="text-[10px] uppercase tracking-widest text-slate-400 bg-slate-50">
-                            <th class="p-4">Rating</th>
-                            <th class="p-4">Dept</th>
-                            <th class="p-4">Occupation</th>
-                            <th class="p-4">Details</th>
-                        </tr>
-                    </thead>
-                    <tbody id="recentFeedbackBody" class="text-xs">
-                        </tbody>
-                </table>
-            </div>
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-slate-50 text-[10px] uppercase font-black text-slate-400">
+                    <tr>
+                        <th class="p-4">Patient</th>
+                        <th class="p-4">Dept</th>
+                        <th class="p-4 text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="recentFeedbackBody" class="text-xs divide-y divide-slate-50"></tbody>
+            </table>
         </div>
     </div>
 
     <script>
         const form = document.getElementById('surveyForm');
-        document.getElementById('toggleForm').onclick = () => form.classList.toggle('open');
+        document.getElementById('toggleForm').onclick = () => {
+            form.reset();
+            document.getElementById('edit_id').value = '';
+            document.getElementById('formTitle').innerText = 'Patient Entry Mode';
+            form.classList.toggle('open');
+        };
 
         async function loadDepts() {
             const { data } = await supabaseClient.from('hospital_departments').select('name').eq('is_active', true);
-            document.getElementById('departmentDropdown').innerHTML = '<option value="">Select Department...</option>' + data.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+            document.getElementById('departmentDropdown').innerHTML = '<option value="">Select Dept...</option>' + data.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
         }
 
-        // New Function: Load table data
         async function loadRecentFeedback() {
-            const { data, error } = await supabaseClient
-                .from('survey_submissions')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(5);
-
-            if (data) {
-                const tbody = document.getElementById('recentFeedbackBody');
-                tbody.innerHTML = data.map(item => `
-                    <tr class="border-t border-slate-50 hover:bg-slate-50 transition">
-                        <td class="p-4 font-bold ${item.experience_rating === 'Positive' ? 'text-green-500' : 'text-red-500'}">
-                            ${item.experience_rating}
-                        </td>
-                        <td class="p-4 text-slate-600 font-medium">${item.primary_objective}</td>
-                        <td class="p-4 text-slate-400 italic">${item.occupation}</td>
-                        <td class="p-4 text-slate-500 truncate max-w-[200px]">${item.feedback_details || '-'}</td>
-                    </tr>
-                `).join('');
-            }
+            const { data } = await supabaseClient.from('survey_submissions').select('*').order('created_at', { ascending: false }).limit(10);
+            const tbody = document.getElementById('recentFeedbackBody');
+            tbody.innerHTML = data.map(item => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4">
+                        <div class="font-bold text-slate-700">${item.age}y/o ${item.gender}</div>
+                        <div class="text-[10px] text-slate-400">${item.occupation}</div>
+                    </td>
+                    <td class="p-4">
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${item.experience_rating === 'Positive' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}">${item.primary_objective}</span>
+                    </td>
+                    <td class="p-4">
+                        <div class="flex justify-center gap-2">
+                            <button onclick='editRecord(${JSON.stringify(item).replace(/'/g, "&apos;")})' class="p-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-600 hover:text-white transition">Edit</button>
+                            <button onclick="deleteRecord('${item.id}')" class="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-600 hover:text-white transition">Del</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
         }
+
+        // EDIT FUNCTION
+        window.editRecord = (item) => {
+            form.classList.add('open');
+            document.getElementById('formTitle').innerText = 'Editing Record ID: ' + item.id.split('-')[0];
+            document.getElementById('edit_id').value = item.id;
+            document.getElementById('age').value = item.age;
+            document.getElementById('gender').value = item.gender;
+            document.getElementById('location').value = item.location;
+            document.getElementById('occupation').value = item.occupation;
+            document.getElementById('departmentDropdown').value = item.primary_objective;
+            document.getElementById('feedback_details').value = item.feedback_details;
+            if(item.patient_type === 'New') document.getElementById('typeNew').checked = true; else document.getElementById('typeRepeat').checked = true;
+            if(item.experience_rating === 'Positive') document.getElementById('expPos').checked = true; else document.getElementById('expNeg').checked = true;
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        // DELETE FUNCTION
+        window.deleteRecord = async (id) => {
+            if (confirm('Delete this survey entry permanently?')) {
+                const { error } = await supabaseClient.from('survey_submissions').delete().eq('id', id);
+                if (error) alert(error.message);
+                else loadRecentFeedback();
+            }
+        };
 
         form.onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
-            btn.innerText = 'SAVING...'; btn.disabled = true;
-            
+            const editId = document.getElementById('edit_id').value;
+            btn.disabled = true;
+
             const fd = new FormData(form);
-            const { error } = await supabaseClient.from('survey_submissions').insert([{
+            const payload = {
                 age: parseInt(fd.get('age')),
                 gender: fd.get('gender'),
                 location: fd.get('location'),
@@ -168,17 +177,23 @@
                 primary_objective: fd.get('primary_objective'),
                 experience_rating: fd.get('experience'),
                 feedback_details: fd.get('feedback_details')
-            }]);
+            };
 
-            if (error) alert(error.message);
-            else { 
-                alert('Record Saved Successfully!'); 
-                form.reset(); 
-                form.classList.remove('open'); 
-                document.getElementById('reasonsBox').classList.add('hidden');
-                loadRecentFeedback(); // Refresh table after saving
+            let res;
+            if (editId) {
+                res = await supabaseClient.from('survey_submissions').update(payload).eq('id', editId);
+            } else {
+                res = await supabaseClient.from('survey_submissions').insert([payload]);
             }
-            btn.innerText = 'Save Survey Results'; btn.disabled = false;
+
+            if (res.error) alert(res.error.message);
+            else {
+                alert(editId ? 'Updated!' : 'Saved!');
+                form.reset();
+                form.classList.remove('open');
+                loadRecentFeedback();
+            }
+            btn.disabled = false;
         };
     </script>
 </body>
