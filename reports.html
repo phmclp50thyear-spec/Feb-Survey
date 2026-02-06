@@ -67,9 +67,15 @@
             </div>
         </div>
 
-        <div class="bg-white shadow-xl rounded-3xl p-8 border border-slate-100">
-            <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Demographic Comparison (Male vs Female)</h4>
-            <div class="chart-container"><canvas id="demoChart"></canvas></div>
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="lg:col-span-2 bg-white shadow-xl rounded-3xl p-8 border border-slate-100">
+                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Demographic Comparison (Age & Gender)</h4>
+                <div class="chart-container"><canvas id="demoChart"></canvas></div>
+            </div>
+            <div class="bg-white shadow-xl rounded-3xl p-8 border border-slate-100">
+                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Occupation Mix</h4>
+                <div class="chart-container"><canvas id="occChart"></canvas></div>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -78,8 +84,8 @@
                 <div class="chart-container"><canvas id="locChart"></canvas></div>
             </div>
             <div class="bg-white shadow-xl rounded-3xl p-8 border border-slate-100">
-                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Occupation Mix</h4>
-                <div class="chart-container"><canvas id="occChart"></canvas></div>
+                <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Sentiment Split</h4>
+                <div class="chart-container"><canvas id="sentimentChart"></canvas></div>
             </div>
         </div>
 
@@ -117,6 +123,7 @@
 
                 const total = data.length;
                 const pos = data.filter(s => s.experience_rating === 'Positive').length;
+                const neg = total - pos;
                 const rep = data.filter(s => s.patient_type === 'Repeat').length;
 
                 document.getElementById('totalCount').innerText = total;
@@ -124,7 +131,6 @@
                 document.getElementById('repeatCount').innerText = rep;
                 document.getElementById('newCount').innerText = total - rep;
 
-                // Feedback Response Injection
                 document.getElementById('feedbackContainer').innerHTML = data.slice(0, 10).map(item => `
                     <div class="p-4 rounded-2xl border border-gray-100 flex items-start gap-4 hover:bg-gray-50 transition">
                         <div class="w-1.5 h-10 ${item.experience_rating === 'Positive' ? 'bg-green-500' : 'bg-red-500'} rounded-full"></div>
@@ -138,15 +144,15 @@
                     </div>
                 `).join('');
 
-                renderCharts(data, pos, total);
+                renderCharts(data, pos, neg, total);
             } catch (e) { console.error(e); }
         }
 
-        function renderCharts(data, pos, total) {
+        function renderCharts(data, pos, neg, total) {
             Chart.defaults.font.family = "'Inter', sans-serif";
             const count = (arr, key) => arr.reduce((acc, cur) => { acc[cur[key]] = (acc[cur[key]] || 0) + 1; return acc; }, {});
 
-            // 1. Demographic Side-by-Side (M/F x Age)
+            // 1. Demographic Comparison
             const ageL = ['0-19', '20-39', '40-59', '60-79', '80-90'];
             const mD = [0,0,0,0,0], fD = [0,0,0,0,0];
             data.forEach(s => {
@@ -162,7 +168,7 @@
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top' }}}
             });
 
-            // 2. Locations (Horizontal + Multicolored)
+            // 2. Locations (Horizontal)
             const locs = count(data, 'location');
             new Chart(document.getElementById('locChart'), {
                 type: 'bar',
@@ -170,15 +176,35 @@
                 options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}}
             });
 
-            // 3. Occupations (Standard Bar + Multicolored)
+            // 3. Occupations (Pie Chart)
             const occs = count(data, 'occupation');
             new Chart(document.getElementById('occChart'), {
-                type: 'bar',
-                data: { labels: Object.keys(occs), datasets: [{ data: Object.values(occs), backgroundColor: VIBRANT_COLORS, borderRadius: 8 }]},
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }}}
+                type: 'pie',
+                data: { labels: Object.keys(occs), datasets: [{ data: Object.values(occs), backgroundColor: VIBRANT_COLORS }]},
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' }}}
             });
 
-            // 4. Depts (Standard Bar + Multicolored)
+            // 4. Sentiment (Doughnut Chart)
+            new Chart(document.getElementById('sentimentChart'), {
+                type: 'doughnut',
+                data: { 
+                    labels: ['POSITIVE', 'NEGATIVE'], 
+                    datasets: [{ 
+                        data: [pos, neg], 
+                        backgroundColor: ['#10b981', '#f43f5e'],
+                        hoverOffset: 4,
+                        borderWidth: 0
+                    }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false, 
+                    cutout: '70%',
+                    plugins: { legend: { position: 'bottom' }}
+                }
+            });
+
+            // 5. Depts
             const depts = count(data, 'primary_objective');
             new Chart(document.getElementById('deptChart'), {
                 type: 'bar',
@@ -189,4 +215,3 @@
     </script>
 </body>
 </html>
-
