@@ -68,6 +68,7 @@
 
         <form id="externalSurveyForm" class="collapsible-content bg-white rounded-[2.5rem] shadow-3xl border border-slate-100 overflow-hidden">
             <div class="p-8 md:p-12 space-y-8">
+                
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div class="space-y-2">
                         <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Respondent Age</label>
@@ -76,8 +77,27 @@
                     <div class="space-y-2">
                         <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Gender</label>
                         <select name="gender" required class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-rose-500 outline-none transition-all font-semibold appearance-none">
+                            <option value="">Select Gender</option>
                             <option value="Male">Male</option>
                             <option value="Female">Female</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-2">City / Location</label>
+                        <input type="text" name="location" placeholder="Town Name" required class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-rose-500 outline-none transition-all font-semibold">
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Occupation</label>
+                        <select name="occupation" required class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-rose-500 outline-none transition-all font-semibold appearance-none">
+                            <option value="">Select Occupation</option>
+                            <option value="working">Working Professionals</option>
+                            <option value="student">Student</option>
+                            <option value="pensioner">Pensioner</option>
+                            <option value="househusband/housewife">Househusband/Housewife</option>
+                            <option value="unemployed">Unemployed</option>
                         </select>
                     </div>
                 </div>
@@ -87,11 +107,11 @@
                     <p class="text-sm font-bold text-slate-700 text-center px-4">Have you availed of any services from diagnostic clinic/hospital services for the past 6 months?</p>
                     <div class="flex gap-4">
                         <label class="flex-1 cursor-pointer">
-                            <input type="radio" name="has_availed_recently" value="true" class="peer hidden" onchange="document.getElementById('detailsArea').classList.remove('hidden')">
+                            <input type="radio" name="has_availed_recently" value="true" class="peer hidden" onchange="toggleDetails(true)">
                             <div class="p-4 border-2 border-slate-200 rounded-2xl text-center font-black text-xs uppercase text-slate-400 peer-checked:border-rose-500 peer-checked:text-rose-600 bg-white transition-all">Yes</div>
                         </label>
                         <label class="flex-1 cursor-pointer">
-                            <input type="radio" name="has_availed_recently" value="false" class="peer hidden" checked onchange="document.getElementById('detailsArea').classList.add('hidden')">
+                            <input type="radio" name="has_availed_recently" value="false" class="peer hidden" checked onchange="toggleDetails(false)">
                             <div class="p-4 border-2 border-slate-200 rounded-2xl text-center font-black text-xs uppercase text-slate-400 peer-checked:border-slate-900 peer-checked:text-white bg-white transition-all">No</div>
                         </label>
                     </div>
@@ -128,7 +148,6 @@
     </main>
 
     <script>
-        // CREDENTIALS RETRIEVED FROM YOUR SURVEY.HTML
         const SB_URL = 'https://osfwbhcqibhtobaoojrv.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZndiaGNxaWJodG9iYW9vanJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDU3MzksImV4cCI6MjA4NTY4MTczOX0.2NNaOhHfXMsYVWrBkJ1gudU4l0in35WU4bT4UgzkvlA';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
@@ -140,6 +159,17 @@
             loadExternalTable();
         }
         initPage();
+
+        function toggleDetails(show) {
+            const area = document.getElementById('detailsArea');
+            if(show) {
+                area.classList.remove('hidden');
+            } else {
+                area.classList.add('hidden');
+                // Clear the text if "No" is clicked
+                document.querySelector('textarea[name="service_details"]').value = "";
+            }
+        }
 
         const extForm = document.getElementById('externalSurveyForm');
         document.getElementById('toggleExtForm').onclick = () => {
@@ -153,11 +183,14 @@
             const tbody = document.getElementById('externalLogTable');
             tbody.innerHTML = data && data.length > 0 ? data.map(item => `
                 <tr class="text-sm">
-                    <td class="px-8 py-6 font-bold text-slate-700">${item.age}y/o • ${item.gender}</td>
+                    <td class="px-8 py-6">
+                        <div class="font-bold text-slate-700">${item.age}y/o • ${item.gender}</div>
+                        <div class="text-[9px] text-slate-400 uppercase font-black tracking-widest">${item.location} • ${item.occupation}</div>
+                    </td>
                     <td class="px-8 py-6 text-center font-black text-[10px] ${item.has_availed_recently ? 'text-rose-500' : 'text-slate-300'}">
                         ${item.has_availed_recently ? 'YES' : 'NO'}
                     </td>
-                    <td class="px-8 py-6 text-slate-400 italic">${item.service_details || '--'}</td>
+                    <td class="px-8 py-6 text-slate-400 italic text-xs">${item.service_details || '--'}</td>
                 </tr>
             `).join('') : '<tr><td colspan="3" class="p-8 text-center text-slate-300 text-xs uppercase font-black">No records found</td></tr>';
         }
@@ -172,9 +205,10 @@
             const payload = {
                 age: parseInt(fd.get('age')),
                 gender: fd.get('gender'),
+                location: fd.get('location'),
+                occupation: fd.get('occupation'),
                 has_availed_recently: fd.get('has_availed_recently') === 'true',
-                service_details: fd.get('service_details'),
-                location: 'External Market'
+                service_details: fd.get('service_details')
             };
 
             const { error } = await supabaseClient.from('external_surveys').insert([payload]);
@@ -184,7 +218,7 @@
             } else {
                 extForm.reset();
                 extForm.classList.remove('open');
-                document.getElementById('detailsArea').classList.add('hidden');
+                toggleDetails(false); // Hide the input box again
                 document.getElementById('extToggleText').innerText = "Add Entry";
                 loadExternalTable();
             }
