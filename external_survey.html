@@ -107,19 +107,19 @@
                     <p class="text-sm font-bold text-slate-700 text-center px-4">Have you availed of any services from diagnostic clinic/hospital services for the past 6 months?</p>
                     <div class="flex gap-4">
                         <label class="flex-1 cursor-pointer">
-                            <input type="radio" name="has_availed_recently" value="true" class="peer hidden" onchange="showDetails()">
+                            <input type="radio" name="has_availed_recently" value="true" class="peer hidden" onchange="showDetails(this.value)">
                             <div class="p-4 border-2 border-slate-200 rounded-2xl text-center font-black text-xs uppercase text-slate-400 peer-checked:border-rose-500 peer-checked:text-rose-600 bg-white transition-all">Yes</div>
                         </label>
                         <label class="flex-1 cursor-pointer">
-                            <input type="radio" name="has_availed_recently" value="false" class="peer hidden" onchange="showDetails()">
-                            <div class="p-4 border-2 border-slate-200 rounded-2xl text-center font-black text-xs uppercase text-slate-400 peer-checked:border-slate-900 peer-checked:text-white bg-white transition-all">No</div>
+                            <input type="radio" name="has_availed_recently" value="false" class="peer hidden" onchange="showDetails(this.value)">
+                            <div class="p-4 border-2 border-slate-200 rounded-2xl text-center font-black text-xs uppercase text-slate-400 peer-checked:border-slate-800 peer-checked:text-slate-800 bg-white transition-all">No</div>
                         </label>
                     </div>
                 </div>
 
                 <div id="detailsArea" class="hidden space-y-2">
                     <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Specific Details</label>
-                    <textarea name="service_details" placeholder="Which hospital/clinic? What services? Why?" rows="3" required class="w-full p-6 bg-slate-50 rounded-[2rem] border-2 border-transparent focus:border-rose-500 outline-none transition-all italic text-slate-600"></textarea>
+                    <textarea id="service_details" name="service_details" placeholder="Which hospital/clinic? What services? Why?" rows="3" required class="w-full p-6 bg-slate-50 rounded-[2rem] border-2 border-transparent focus:border-rose-500 outline-none transition-all italic text-slate-600"></textarea>
                 </div>
 
                 <button type="submit" id="extSubmitBtn" class="w-full bg-rose-500 text-white font-black uppercase tracking-[0.3em] py-6 rounded-3xl shadow-xl hover:bg-rose-600 transition-all text-sm">
@@ -160,8 +160,17 @@
         }
         initPage();
 
-        function showDetails() {
-            document.getElementById('detailsArea').classList.remove('hidden');
+        // FIX: Dynamic placeholder logic
+        function showDetails(val) {
+            const area = document.getElementById('detailsArea');
+            const textarea = document.getElementById('service_details');
+            area.classList.remove('hidden');
+            
+            if(val === 'true') {
+                textarea.placeholder = "Which hospital/clinic? What services? Why?";
+            } else {
+                textarea.placeholder = "Which hospital/clinic? and Why?";
+            }
         }
 
         const extForm = document.getElementById('externalSurveyForm');
