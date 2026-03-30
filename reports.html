@@ -33,7 +33,6 @@
             transition: opacity 0.5s ease;
             cursor: default;
             line-height: 1;
-            /* No rotation for clarity */
         }
         
         .center-hub {
@@ -53,10 +52,7 @@
         }
 
         @media print {
-            nav, .no-print, button { display: none !important; }
-            body { background: white !important; }
-            .bg-white { border: 2px solid #e2e8f0 !important; box-shadow: none !important; }
-            .feedback-canvas { border: 2px solid #000 !important; page-break-before: always; }
+            .no-print { display: none !important; }
         }
     </style>
 </head>
@@ -71,11 +67,13 @@
                     <button onclick="switchDashboard('external')" id="tab-ext" class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-all">External</button>
                 </div>
             </div>
-            <button onclick="window.print()" class="bg-slate-900 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition">Export PDF</button>
+            <button onclick="exportToWord()" class="bg-indigo-600 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition flex items-center gap-2">
+                <span>Export MS Word</span>
+            </button>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-12">
+    <main id="exportContent" class="max-w-7xl mx-auto p-4 md:p-8 space-y-12">
         
         <div id="section-internal" class="tab-content active space-y-10">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -135,18 +133,11 @@
                     <h3 id="extNoCount" class="text-3xl font-black italic text-slate-400">--</h3>
                 </div>
             </div>
-            </div>
+        </div>
 
         <section class="pt-10 border-t-2 border-slate-200">
-            <div class="mb-6 flex items-center justify-between">
-                <div>
-                    <h4 class="text-xs font-black text-slate-500 uppercase tracking-[0.4em]">Sentiment Hub</h4>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Direct Patient Feedback Visualization</p>
-                </div>
-                <div class="flex gap-4">
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-emerald-500"></div><span class="text-[10px] font-bold uppercase tracking-widest">Positive</span></div>
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><span class="text-[10px] font-bold uppercase tracking-widest">Concern</span></div>
-                </div>
+            <div class="mb-6">
+                <h4 class="text-xs font-black text-slate-500 uppercase tracking-[0.4em]">Sentiment Visualization</h4>
             </div>
             
             <div class="feedback-canvas shadow-3xl" id="canvas">
@@ -170,6 +161,40 @@
             fetchExternal();
         };
 
+        async function exportToWord() {
+            const mainContent = document.getElementById('exportContent').cloneNode(true);
+            
+            // Step 1: Replace all Canvas with Static Images for Word compatibility
+            const originalCanvases = document.querySelectorAll('canvas');
+            const clonedCanvases = mainContent.querySelectorAll('canvas');
+            
+            originalCanvases.forEach((canvas, i) => {
+                const img = document.createElement('img');
+                img.src = canvas.toDataURL("image/png");
+                img.style.width = '100%';
+                img.style.maxWidth = '600px';
+                clonedCanvases[i].parentNode.replaceChild(img, clonedCanvases[i]);
+            });
+
+            // Step 2: Ensure internal and external sections are visible in the doc
+            mainContent.querySelectorAll('.tab-content').forEach(el => el.style.display = 'block');
+
+            // Step 3: Wrap in MS Word XML / HTML Template
+            const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>PHMC Report</title><style>body{font-family:Arial;padding:20px;} .grid{display:block;} .bg-white{border:1px solid #eee; padding:15px; margin-bottom:10px;} h3{color:#4f46e5;}</style></head><body>";
+            const footer = "</body></html>";
+            const sourceHTML = header + mainContent.innerHTML + footer;
+            
+            // Step 4: Trigger Download
+            const blob = new Blob(['\ufeff', sourceHTML], { type: 'application/msword' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'PHMC_Analytics_Report.doc';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function switchDashboard(type) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`section-${type}`).classList.add('active');
@@ -186,13 +211,11 @@
         async function fetchInternal() {
             const { data } = await supabaseClient.from('survey_submissions').select('*');
             if (!data) return;
-            
             document.getElementById('totalCount').innerText = data.length;
             const posCount = data.filter(s => s.experience_rating === 'Positive').length;
             document.getElementById('posRate').innerText = Math.round((posCount/data.length)*100) + '%';
             document.getElementById('repeatCount').innerText = data.filter(s => s.patient_type === 'Repeat').length;
             document.getElementById('newCount').innerText = data.length - data.filter(s => s.patient_type === 'Repeat').length;
-            
             renderInternalCharts(data, posCount);
             processAndRenderScattered(data);
         }
@@ -209,10 +232,8 @@
         function processAndRenderScattered(data) {
             const wrapper = document.getElementById('feedbackWrapper');
             const canvas = document.getElementById('canvas');
-            const CW = canvas.offsetWidth;
-            const CH = canvas.offsetHeight;
-            const center = { x: CW / 2, y: CH / 2, r: 180 }; // Collision-free radius around logo
-
+            const CW = canvas.offsetWidth, CH = canvas.offsetHeight;
+            const center = { x: CW / 2, y: CH / 2, r: 180 };
             const placedRects = [];
             const feedbackList = data.filter(d => d.feedback_details && d.feedback_details.length > 2 && d.feedback_details.toLowerCase() !== 'none').slice(0, 50);
 
@@ -221,36 +242,24 @@
                 span.className = 'feedback-item';
                 span.innerText = item.feedback_details;
                 span.style.color = item.experience_rating === 'Positive' ? '#10b981' : '#ef4444';
-                
                 const sizes = ['11px', '14px', '18px', '22px', '32px'];
                 span.style.fontSize = sizes[index % sizes.length];
                 span.style.opacity = '0';
                 wrapper.appendChild(span);
 
                 const rect = span.getBoundingClientRect();
-                const w = rect.width + 25; // Horizontal buffer
-                const h = rect.height + 15; // Vertical buffer
-
+                const w = rect.width + 25, h = rect.height + 15;
                 let placed = false;
                 for (let tries = 0; tries < 150; tries++) {
                     const x = Math.random() * (CW - w - 40) + 20;
                     const y = Math.random() * (CH - h - 40) + 20;
-                    
-                    // Logo Zone Check
                     const distToCenter = Math.sqrt(Math.pow((x + w/2) - center.x, 2) + Math.pow((y + h/2) - center.y, 2));
                     if (distToCenter < center.r) continue;
-
-                    // Text Overlap Check
                     const currentRect = { left: x, top: y, right: x + w, bottom: y + h };
                     const overlap = placedRects.some(r => !(currentRect.right < r.left || currentRect.left > r.right || currentRect.bottom < r.top || currentRect.top > r.bottom));
-
                     if (!overlap) {
-                        span.style.left = `${x}px`;
-                        span.style.top = `${y}px`;
-                        span.style.opacity = '1';
-                        placedRects.push(currentRect);
-                        placed = true;
-                        break;
+                        span.style.left = `${x}px`; span.style.top = `${y}px`; span.style.opacity = '1';
+                        placedRects.push(currentRect); placed = true; break;
                     }
                 }
                 if (!placed) span.remove();
@@ -259,36 +268,12 @@
 
         function renderInternalCharts(data, pos) {
             const count = (k) => data.reduce((a, c) => { a[c[k]] = (a[c[k]] || 0) + 1; return a; }, {});
-            
-            // Age & Gender
-            new Chart(document.getElementById('demoChart'), { 
-                type: 'bar', 
-                data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [{ label: 'Male', data: [5, 14, 8, 4, 1], backgroundColor: '#38bdf8' }, { label: 'Female', data: [9, 18, 11, 6, 2], backgroundColor: '#818cf8' }]}, 
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            // Occupation
+            new Chart(document.getElementById('demoChart'), { type: 'bar', data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [{ label: 'Male', data: [5, 14, 8, 4, 1], backgroundColor: '#38bdf8' }, { label: 'Female', data: [9, 18, 11, 6, 2], backgroundColor: '#818cf8' }]}, options: { animation: false, responsive: true, maintainAspectRatio: false }});
             const occData = count('occupation');
-            new Chart(document.getElementById('occChart'), { 
-                type: 'pie', 
-                data: { labels: Object.keys(occData), datasets: [{ data: Object.values(occData), backgroundColor: ['#6366f1', '#2dd4bf', '#0ea5e9', '#f59e0b', '#ec4899'] }]}, 
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            // Location
+            new Chart(document.getElementById('occChart'), { type: 'pie', data: { labels: Object.keys(occData), datasets: [{ data: Object.values(occData), backgroundColor: ['#6366f1', '#2dd4bf', '#0ea5e9', '#f59e0b', '#ec4899'] }]}, options: { animation: false, responsive: true, maintainAspectRatio: false }});
             const locData = count('location');
-            new Chart(document.getElementById('locChart'), { 
-                type: 'bar', 
-                data: { labels: Object.keys(locData), datasets: [{ label: 'Volume', data: Object.values(locData), backgroundColor: '#0ea5e9', borderRadius: 10 }]}, 
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
-            });
-
-            // Sentiment
-            new Chart(document.getElementById('sentimentChart'), { 
-                type: 'doughnut', 
-                data: { labels: ['Pos', 'Neg'], datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'] }]}, 
-                options: { responsive: true, maintainAspectRatio: false, cutout: '80%' }
-            });
+            new Chart(document.getElementById('locChart'), { type: 'bar', data: { labels: Object.keys(locData), datasets: [{ label: 'Volume', data: Object.values(locData), backgroundColor: '#0ea5e9', borderRadius: 10 }]}, options: { animation: false, indexAxis: 'y', responsive: true, maintainAspectRatio: false }});
+            new Chart(document.getElementById('sentimentChart'), { type: 'doughnut', data: { labels: ['Pos', 'Neg'], datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'] }]}, options: { animation: false, responsive: true, maintainAspectRatio: false, cutout: '80%' }});
         }
     </script>
 </body>
