@@ -22,14 +22,13 @@
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .chart-container { position: relative; height: 300px; width: 100%; }
+        .chart-container { position: relative; height: 280px; width: 100%; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
-        /* SCATTERED FEEDBACK STYLES */
         .feedback-canvas {
             position: relative;
-            height: 500px;
+            height: 450px;
             width: 100%;
             background: #ffffff;
             overflow: hidden;
@@ -46,7 +45,6 @@
             line-height: 1;
             opacity: 0.8;
         }
-        .feedback-item:hover { opacity: 1; transform: scale(1.1); z-index: 10; }
         
         .center-hub {
             position: absolute;
@@ -54,7 +52,7 @@
             transform: translate(-50%, -50%);
             z-index: 20;
             background: white;
-            width: 140px; height: 140px;
+            width: 130px; height: 130px;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             border-radius: 999px;
@@ -66,24 +64,24 @@
             nav, .no-print, button { display: none !important; }
             body { background: white !important; }
             .tab-content { display: block !important; }
-            .feedback-canvas { page-break-before: always; border: 2px solid #000; }
+            .chart-container { height: 200px !important; }
         }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen">
 
-    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 p-3 md:p-4 shadow-sm no-print">
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 p-3 md:p-4 shadow-sm">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-4 md:gap-8">
                 <h1 class="font-black text-indigo-600 tracking-tighter text-lg md:text-xl uppercase italic">PHMC</h1>
                 <div class="flex gap-4 md:gap-6">
                     <a href="survey.html" class="text-sm font-bold text-slate-400 hover:text-indigo-600 flex items-center gap-1.5 transition-colors uppercase tracking-widest">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                        <span class="hidden md:inline">Internal Survey</span>
+                        <span class="hidden md:inline">Internal</span>
                     </a>
                     <a href="external_survey.html" class="text-sm font-bold text-slate-400 hover:text-rose-500 flex items-center gap-1.5 transition-colors uppercase tracking-widest">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                        <span class="hidden md:inline">External Survey</span>
+                        <span class="hidden md:inline">External</span>
                     </a>
                     <a href="reports.html" class="text-sm font-bold text-indigo-600 flex items-center gap-1.5 transition-colors uppercase tracking-widest border-b-2 border-indigo-600">
                         <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
@@ -98,102 +96,95 @@
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-4 md:p-12 space-y-12">
+    <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
         
-        <header class="grid grid-cols-1 lg:grid-cols-3 gap-8 no-print">
-            <div class="lg:col-span-2 bg-slate-900 rounded-[2.5rem] p-10 text-white shadow-2xl relative overflow-hidden">
-                <div class="relative z-10">
-                    <p class="text-indigo-400 text-[10px] font-black uppercase tracking-[0.4em] mb-4">Executive Briefing</p>
-                    <h2 class="text-3xl font-black italic mb-4 leading-tight">Patient satisfaction is stable, but infrastructure feedback is peaking.</h2>
-                    <p class="text-slate-400 leading-relaxed font-medium text-sm">Cross-referencing internal complaints with external market reasons shows that facility convenience (parking/elevators) is the primary barrier for new patient acquisition in the Bacoor area.</p>
-                </div>
-                <div class="absolute -right-20 -bottom-20 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl"></div>
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 no-print">
+            <div class="bg-slate-200 p-1.5 rounded-2xl flex gap-1 shadow-inner">
+                <button onclick="switchDashboard('internal')" id="btn-internal" class="px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-white shadow-sm text-indigo-600">Internal Data</button>
+                <button onclick="switchDashboard('external')" id="btn-external" class="px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-500 hover:text-slate-800">External Market</button>
             </div>
-            <div class="bg-white border border-slate-100 shadow-xl rounded-[2.5rem] p-8 flex flex-col justify-center">
-                <div class="flex flex-col gap-4">
-                    <button onclick="switchDashboard('internal')" id="btn-internal" class="w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all bg-indigo-600 text-white shadow-lg">View Internal Data</button>
-                    <button onclick="switchDashboard('external')" id="btn-external" class="w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all bg-slate-50 text-slate-400 hover:text-rose-500">View External Market</button>
-                    <button onclick="window.print()" class="w-full py-3 rounded-2xl text-[9px] font-black uppercase tracking-widest text-slate-400 border border-slate-100 hover:bg-slate-50 transition">Export PDF Report</button>
-                </div>
-            </div>
-        </header>
+            <button onclick="window.print()" class="bg-indigo-600 text-white px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-indigo-700 transition flex items-center gap-2">
+                Print Full Report
+            </button>
+        </div>
 
-        <div id="section-internal" class="tab-content active space-y-10">
+        <div id="section-internal" class="tab-content active space-y-8">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-white shadow-3xl rounded-[2rem] p-8 border-t-4 border-indigo-600">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Total Patients</p>
-                    <h3 id="totalCount" class="text-4xl font-black italic text-slate-900">--</h3>
+                <div class="bg-white shadow-3xl rounded-[2rem] p-6 border-l-4 border-indigo-600">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Submissions</p>
+                    <h3 id="totalCount" class="text-3xl font-black italic">--</h3>
                 </div>
-                <div class="bg-white shadow-3xl rounded-[2rem] p-8 border-t-4 border-emerald-500">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Satisfaction</p>
-                    <h3 id="posRate" class="text-4xl font-black italic text-emerald-500">--</h3>
+                <div class="bg-white shadow-3xl rounded-[2rem] p-6 border-l-4 border-emerald-500">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Satisfaction</p>
+                    <h3 id="posRate" class="text-3xl font-black italic text-emerald-500">--</h3>
                 </div>
-                <div class="bg-white shadow-3xl rounded-[2rem] p-8 border-t-4 border-indigo-400">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Retention Rate</p>
-                    <h3 id="retentionRate" class="text-4xl font-black italic text-indigo-400">--%</h3>
+                <div class="bg-white shadow-3xl rounded-[2rem] p-6 border-l-4 border-indigo-400">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Repeat Patients</p>
+                    <h3 id="repeatCount" class="text-3xl font-black italic text-indigo-400">--</h3>
                 </div>
-                <div class="bg-white shadow-3xl rounded-[2rem] p-8 border-t-4 border-slate-800">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">New Growth</p>
-                    <h3 id="newCount" class="text-4xl font-black italic text-slate-800">--</h3>
+                <div class="bg-white shadow-3xl rounded-[2rem] p-6 border-l-4 border-slate-800">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">New Patients</p>
+                    <h3 id="newCount" class="text-3xl font-black italic text-slate-800">--</h3>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white rounded-[2.5rem] p-10 shadow-sm border border-slate-50">
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-8">Patient Geography</h4>
+                <div class="bg-white shadow-xl rounded-[2rem] p-8 border border-slate-100">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Demographics (Age & Gender)</h4>
+                    <div class="chart-container"><canvas id="demoChart"></canvas></div>
+                </div>
+                <div class="bg-white shadow-xl rounded-[2rem] p-8 border border-slate-100">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Occupation Mix</h4>
+                    <div class="chart-container"><canvas id="occChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white shadow-xl rounded-[2rem] p-8 border border-slate-100">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Patient Locations</h4>
                     <div class="chart-container"><canvas id="locChart"></canvas></div>
                 </div>
-                <div class="bg-white rounded-[2.5rem] p-10 shadow-sm border border-slate-50">
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-8 text-center">Sentiment Balance</h4>
+                <div class="bg-white shadow-xl rounded-[2rem] p-8 border border-slate-100">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Sentiment Balance</h4>
                     <div class="chart-container"><canvas id="sentimentChart"></canvas></div>
                 </div>
             </div>
         </div>
 
-        <div id="section-external" class="tab-content space-y-10">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="bg-white shadow-3xl rounded-[2rem] p-8 border-t-4 border-rose-500">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Market Reach</p>
-                    <h3 id="extTotalCount" class="text-4xl font-black italic text-slate-900">--</h3>
+        <div id="section-external" class="tab-content space-y-8">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-white shadow-3xl rounded-[2rem] p-6 border-l-4 border-rose-500">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Market Responses</p>
+                    <h3 id="extTotalCount" class="text-3xl font-black italic">--</h3>
                 </div>
-                <div class="bg-white shadow-3xl rounded-[2rem] p-8 border-t-4 border-rose-600">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Active Prospects</p>
-                    <h3 id="extYesCount" class="text-4xl font-black italic text-rose-600">--</h3>
+                <div class="bg-white shadow-3xl rounded-[2rem] p-6 border-l-4 border-rose-600">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Visited Recently</p>
+                    <h3 id="extYesCount" class="text-3xl font-black italic text-rose-600">--</h3>
                 </div>
-                <div class="bg-white shadow-3xl rounded-[2rem] p-8 border-t-4 border-slate-300">
-                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Cold Market</p>
-                    <h3 id="extNoCount" class="text-4xl font-black italic text-slate-400">--</h3>
+                <div class="bg-white shadow-3xl rounded-[2rem] p-6 border-l-4 border-slate-300">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Non-Visitors</p>
+                    <h3 id="extNoCount" class="text-3xl font-black italic text-slate-400">--</h3>
                 </div>
             </div>
-            
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white rounded-[2.5rem] p-10 shadow-sm border border-rose-50">
-                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.3em] mb-8">Market Occupation Split</h4>
-                    <div class="chart-container"><canvas id="extOccChart"></canvas></div>
+                <div class="bg-white shadow-xl rounded-[2rem] p-8 border border-rose-100">
+                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.3em] mb-6">Market Demographics</h4>
+                    <div class="chart-container"><canvas id="extDemoChart"></canvas></div>
                 </div>
-                <div class="bg-white rounded-[2.5rem] p-10 shadow-sm border border-rose-50">
-                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.3em] mb-8">Prospect Locations</h4>
-                    <div class="chart-container"><canvas id="extLocChart"></canvas></div>
+                <div class="bg-white shadow-xl rounded-[2rem] p-8 border border-rose-100">
+                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.3em] mb-6 text-center">Market Occupation</h4>
+                    <div class="chart-container"><canvas id="extOccChart"></canvas></div>
                 </div>
             </div>
         </div>
 
         <section class="space-y-6">
-            <div class="flex items-center justify-between">
-                <div>
-                    <h4 class="text-xs font-black text-slate-900 uppercase tracking-[0.4em]">The Voice of PHMC</h4>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Live Unfiltered Sentiment Stream</p>
-                </div>
-                <div class="flex gap-4 no-print">
-                    <div class="flex items-center gap-2 text-[10px] font-black uppercase text-emerald-500"><div class="w-2 h-2 rounded-full bg-emerald-500"></div>Positive</div>
-                    <div class="flex items-center gap-2 text-[10px] font-black uppercase text-rose-500"><div class="w-2 h-2 rounded-full bg-rose-500"></div>Critical</div>
-                </div>
-            </div>
-            
+            <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.4em]">The Voice of PHMC (Qualitative Sentiment)</h4>
             <div class="feedback-canvas shadow-3xl" id="canvas">
                 <div class="center-hub">
-                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 italic">Patient</p>
-                    <h2 class="text-2xl font-black uppercase italic text-indigo-600">Insights</h2>
+                    <p class="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300 italic">Patient</p>
+                    <h2 class="text-xl font-black uppercase italic text-indigo-600">Insights</h2>
                 </div>
                 <div id="feedbackWrapper" class="w-full h-full relative"></div>
             </div>
@@ -205,6 +196,9 @@
         const SB_URL = 'https://osfwbhcqibhtobaoojrv.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZndiaGNxaWJodG9iYW9vanJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDU3MzksImV4cCI6MjA4NTY4MTczOX0.2NNaOhHfXMsYVWrBkJ1gudU4l0in35WU4bT4UgzkvlA';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
+        
+        const INTERNAL_COLORS = ['#6366f1', '#2dd4bf', '#0ea5e9', '#8b5cf6', '#10b981'];
+        const EXTERNAL_COLORS = ['#e11d48', '#fb7185', '#fda4af', '#9f1239', '#f43f5e'];
 
         window.onload = async () => {
             const { data: { user } } = await supabaseClient.auth.getUser();
@@ -218,85 +212,98 @@
         function switchDashboard(type) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`section-${type}`).classList.add('active');
-            
-            const btnInt = document.getElementById('btn-internal');
-            const btnExt = document.getElementById('btn-external');
-            
+            const btnInt = document.getElementById('btn-internal'), btnExt = document.getElementById('btn-external');
             if(type === 'internal') {
-                btnInt.className = "w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-indigo-600 text-white shadow-lg transition-all";
-                btnExt.className = "w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-slate-50 text-slate-400 hover:text-rose-500 transition-all";
+                btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-indigo-600";
+                btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-800";
             } else {
-                btnExt.className = "w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-rose-600 text-white shadow-lg transition-all";
-                btnInt.className = "w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-slate-50 text-slate-400 hover:text-indigo-500 transition-all";
+                btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-rose-600";
+                btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-slate-800";
             }
+        }
+
+        // RESTORED AGE CALCULATION HELPER
+        function calculateAgeDist(data, gender) {
+            const dist = [0,0,0,0,0];
+            data.filter(s => s.gender === gender).forEach(s => {
+                let i = s.age <= 19 ? 0 : s.age <= 39 ? 1 : s.age <= 59 ? 2 : s.age <= 79 ? 3 : 4;
+                dist[i]++;
+            });
+            return dist;
         }
 
         async function fetchInternal() {
             const { data } = await supabaseClient.from('survey_submissions').select('*');
             if (!data) return;
+            const pos = data.filter(s => s.experience_rating === 'Positive').length;
+            const repeat = data.filter(s => s.patient_type === 'Repeat').length;
             
             document.getElementById('totalCount').innerText = data.length;
-            const posCount = data.filter(s => s.experience_rating === 'Positive').length;
-            document.getElementById('posRate').innerText = Math.round((posCount/data.length)*100) + '%';
-            
-            const repeat = data.filter(s => s.patient_type === 'Repeat').length;
-            document.getElementById('retentionRate').innerText = Math.round((repeat/data.length)*100);
+            document.getElementById('posRate').innerText = data.length > 0 ? Math.round((pos/data.length)*100) + '%' : '0%';
+            document.getElementById('repeatCount').innerText = repeat;
             document.getElementById('newCount').innerText = data.length - repeat;
             
-            renderInternalCharts(data, posCount);
+            renderInternalCharts(data, pos);
             processScattered(data);
         }
 
         async function fetchExternal() {
             const { data } = await supabaseClient.from('external_surveys').select('*');
             if (!data) return;
-            
+            const yes = data.filter(s => s.has_availed_recently).length;
             document.getElementById('extTotalCount').innerText = data.length;
-            document.getElementById('extYesCount').innerText = data.filter(s => s.has_availed_recently).length;
-            document.getElementById('extNoCount').innerText = data.filter(s => !s.has_availed_recently).length;
+            document.getElementById('extYesCount').innerText = yes;
+            document.getElementById('extNoCount').innerText = data.length - yes;
 
             renderExternalCharts(data);
         }
 
         function renderInternalCharts(data, pos) {
-            const locs = data.reduce((a, c) => { a[c.location] = (a[c.location] || 0) + 1; return a; }, {});
-            new Chart(document.getElementById('locChart'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(locs),
-                    datasets: [{ label: 'Patients', data: Object.values(locs), backgroundColor: '#6366f1', borderRadius: 10 }]
-                },
+            const count = (arr, key) => arr.reduce((acc, cur) => { acc[cur[key]] = (acc[cur[key]] || 0) + 1; return acc; }, {});
+
+            // RESTORED DEMO CHART
+            new Chart(document.getElementById('demoChart'), { 
+                type: 'bar', 
+                data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [{ label: 'MALE', data: calculateAgeDist(data, 'Male'), backgroundColor: '#2dd4bf' }, { label: 'FEMALE', data: calculateAgeDist(data, 'Female'), backgroundColor: '#0ea5e9' }]}, 
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // RESTORED OCCUPATION CHART
+            const occData = count(data, 'occupation');
+            new Chart(document.getElementById('occChart'), { 
+                type: 'pie', 
+                data: { labels: Object.keys(occData), datasets: [{ data: Object.values(occData), backgroundColor: INTERNAL_COLORS }]}, 
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const locData = count(data, 'location');
+            new Chart(document.getElementById('locChart'), { 
+                type: 'bar', 
+                data: { labels: Object.keys(locData), datasets: [{ label: 'Patients', data: Object.values(locData), backgroundColor: '#6366f1', borderRadius: 8 }]}, 
                 options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
             });
 
-            new Chart(document.getElementById('sentimentChart'), {
-                type: 'doughnut',
-                data: {
-                    labels: ['Positive', 'Critical'],
-                    datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'], borderWeight: 0 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '80%' }
+            new Chart(document.getElementById('sentimentChart'), { 
+                type: 'doughnut', 
+                data: { labels: ['Positive', 'Critical'], datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'] }]}, 
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }
             });
         }
 
         function renderExternalCharts(data) {
-            const occs = data.reduce((a, c) => { a[c.occupation] = (a[c.occupation] || 0) + 1; return a; }, {});
-            new Chart(document.getElementById('extOccChart'), {
-                type: 'pie',
-                data: {
-                    labels: Object.keys(occs),
-                    datasets: [{ data: Object.values(occs), backgroundColor: ['#e11d48', '#fb7185', '#fda4af', '#475569'] }]
-                },
+            const count = (arr, key) => arr.reduce((acc, cur) => { acc[cur[key]] = (acc[cur[key]] || 0) + 1; return acc; }, {});
+
+            // RESTORED EXTERNAL DEMO
+            new Chart(document.getElementById('extDemoChart'), { 
+                type: 'bar', 
+                data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [{ label: 'MALE', data: calculateAgeDist(data, 'Male'), backgroundColor: '#e11d48' }, { label: 'FEMALE', data: calculateAgeDist(data, 'Female'), backgroundColor: '#fb7185' }]}, 
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
-            const locs = data.reduce((a, c) => { a[c.location] = (a[c.location] || 0) + 1; return a; }, {});
-            new Chart(document.getElementById('extLocChart'), {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(locs),
-                    datasets: [{ label: 'Market Interest', data: Object.values(locs), backgroundColor: '#f43f5e', borderRadius: 10 }]
-                },
+            const extOccData = count(data, 'occupation');
+            new Chart(document.getElementById('extOccChart'), { 
+                type: 'pie', 
+                data: { labels: Object.keys(extOccData), datasets: [{ data: Object.values(extOccData), backgroundColor: EXTERNAL_COLORS }]}, 
                 options: { responsive: true, maintainAspectRatio: false }
             });
         }
@@ -304,23 +311,19 @@
         function processScattered(data) {
             const wrapper = document.getElementById('feedbackWrapper');
             const canvas = document.getElementById('canvas');
-            const CW = canvas.offsetWidth;
-            const CH = canvas.offsetHeight;
-            const center = { x: CW / 2, y: CH / 2, r: 160 };
+            const center = { x: canvas.offsetWidth / 2, y: canvas.offsetHeight / 2, r: 150 };
 
-            const feedbacks = data.filter(d => d.feedback_details && d.feedback_details.length > 3).slice(0, 35);
-
-            feedbacks.forEach((item, i) => {
+            data.filter(d => d.feedback_details).slice(0, 30).forEach((item, i) => {
                 const span = document.createElement('span');
                 span.className = 'feedback-item';
                 span.innerText = item.feedback_details;
                 span.style.color = item.experience_rating === 'Positive' ? '#10b981' : '#f43f5e';
-                span.style.fontSize = (10 + (i % 4) * 5) + 'px';
+                span.style.fontSize = (10 + (i % 3) * 4) + 'px';
                 wrapper.appendChild(span);
 
                 for (let t = 0; t < 50; t++) {
-                    const x = Math.random() * (CW - 150) + 20;
-                    const y = Math.random() * (CH - 60) + 20;
+                    const x = Math.random() * (canvas.offsetWidth - 150) + 20;
+                    const y = Math.random() * (canvas.offsetHeight - 50) + 20;
                     const d = Math.sqrt(Math.pow(x + 50 - center.x, 2) + Math.pow(y - center.y, 2));
                     if (d > center.r) {
                         span.style.left = x + 'px';
