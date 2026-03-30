@@ -19,7 +19,7 @@
     </script>
     <style>
         .collapsible-content { max-height: 0; overflow: hidden; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0; }
-        .collapsible-content.open { max-height: 2000px; opacity: 1; margin-bottom: 2rem; }
+        .collapsible-content.open { max-height: 2500px; opacity: 1; margin-bottom: 2rem; }
         input:focus, select:focus, textarea:focus { background-color: white !important; box-shadow: 0 0 0 4px rgba(244, 63, 94, 0.1); }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
@@ -117,9 +117,16 @@
                     </div>
                 </div>
 
-                <div id="detailsArea" class="hidden space-y-2">
-                    <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Specific Details</label>
-                    <textarea id="service_details" name="service_details" placeholder="Which hospital/clinic? What services? Why?" rows="3" required class="w-full p-6 bg-slate-50 rounded-[2rem] border-2 border-transparent focus:border-rose-500 outline-none transition-all italic text-slate-600"></textarea>
+                <div id="detailsArea" class="hidden space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Services</label>
+                        <input type="text" id="services_input" name="services" placeholder="Services" required class="w-full p-4 bg-slate-50 rounded-2xl border-2 border-transparent focus:border-rose-500 outline-none transition-all font-semibold italic text-slate-600">
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-black text-slate-400 uppercase ml-2">Specific Details</label>
+                        <textarea id="service_details" name="service_details" placeholder="Which hospital/clinic? What services? Why?" rows="3" required class="w-full p-6 bg-slate-50 rounded-[2rem] border-2 border-transparent focus:border-rose-500 outline-none transition-all italic text-slate-600"></textarea>
+                    </div>
                 </div>
 
                 <button type="submit" id="extSubmitBtn" class="w-full bg-rose-500 text-white font-black uppercase tracking-[0.3em] py-6 rounded-3xl shadow-xl hover:bg-rose-600 transition-all text-sm">
@@ -160,16 +167,18 @@
         }
         initPage();
 
-        // FIX: Dynamic placeholder logic
         function showDetails(val) {
             const area = document.getElementById('detailsArea');
-            const textarea = document.getElementById('service_details');
+            const detailsTextarea = document.getElementById('service_details');
+            const servicesInput = document.getElementById('services_input');
             area.classList.remove('hidden');
             
             if(val === 'true') {
-                textarea.placeholder = "Which hospital/clinic? What services? Why?";
+                detailsTextarea.placeholder = "Which hospital/clinic? What services? Why?";
+                servicesInput.placeholder = "List services availed...";
             } else {
-                textarea.placeholder = "Which hospital/clinic? and Why?";
+                detailsTextarea.placeholder = "Which hospital/clinic? and Why?";
+                servicesInput.placeholder = "Services you might need in the future...";
             }
         }
 
@@ -192,7 +201,10 @@
                     <td class="px-8 py-6 text-center font-black text-[10px] ${item.has_availed_recently ? 'text-rose-500' : 'text-slate-400'}">
                         ${item.has_availed_recently ? 'YES' : 'NO'}
                     </td>
-                    <td class="px-8 py-6 text-slate-400 italic text-xs leading-relaxed max-w-xs">${item.service_details || '--'}</td>
+                    <td class="px-8 py-6 text-slate-400 italic text-xs leading-relaxed max-w-xs">
+                        <div class="text-indigo-600 font-bold not-italic mb-1 uppercase text-[9px]">Services: ${item.services || '--'}</div>
+                        ${item.service_details || '--'}
+                    </td>
                 </tr>
             `).join('') : '<tr><td colspan="3" class="p-8 text-center text-slate-300 text-xs uppercase font-black">No records found</td></tr>';
         }
@@ -210,6 +222,7 @@
                 location: fd.get('location'),
                 occupation: fd.get('occupation'),
                 has_availed_recently: fd.get('has_availed_recently') === 'true',
+                services: fd.get('services'), // CAPTURING THE NEW FIELD
                 service_details: fd.get('service_details')
             };
 
