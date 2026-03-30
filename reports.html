@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PHMC | Full Intelligence Report</title>
+    <title>PHMC | Full Analytics Report</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -14,10 +14,50 @@
         .chart-container { position: relative; height: 280px; width: 100%; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .feedback-canvas { position: relative; height: 500px; width: 100%; background: #ffffff; overflow: hidden; border: 2px solid #e2e8f0; border-radius: 2.5rem; }
-        .feedback-item { position: absolute; font-weight: 900; text-transform: uppercase; white-space: nowrap; transition: opacity 0.5s ease; cursor: default; line-height: 1; }
-        .center-hub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 50; background: white; color: #6366f1; width: 140px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 999px; box-shadow: 0 15px 45px rgba(0,0,0,0.08); text-align: center; border: 2px solid #f1f5f9; }
-        @media print { nav, .no-print, button { display: none !important; } .bg-white { border: 1px solid #e2e8f0 !important; box-shadow: none !important; } }
+
+        /* SCATTERED FEEDBACK STYLES */
+        .feedback-canvas {
+            position: relative;
+            height: 600px;
+            width: 100%;
+            background: #ffffff;
+            overflow: hidden;
+            border: 2px solid #e2e8f0;
+            border-radius: 2.5rem;
+        }
+        .feedback-item {
+            position: absolute;
+            font-weight: 900;
+            text-transform: uppercase;
+            white-space: nowrap;
+            transition: opacity 0.5s ease;
+            cursor: default;
+            line-height: 1;
+            /* No rotation as requested */
+        }
+        
+        .center-hub {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 50;
+            background: white;
+            color: #6366f1;
+            width: 160px; height: 160px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            border-radius: 999px;
+            box-shadow: 0 15px 45px rgba(0,0,0,0.08);
+            text-align: center;
+            border: 2px solid #f1f5f9;
+        }
+
+        @media print {
+            nav, .no-print, button { display: none !important; }
+            body { background: white !important; }
+            .bg-white { border: 2px solid #e2e8f0 !important; box-shadow: none !important; }
+            .feedback-canvas { border: 2px solid #000 !important; page-break-before: always; }
+        }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-900 min-h-screen pb-20">
@@ -25,55 +65,18 @@
     <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 p-4 shadow-sm no-print">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-8">
-                <h1 class="font-black text-indigo-600 tracking-tighter text-xl uppercase italic">PHMC Intelligence</h1>
+                <h1 class="font-black text-indigo-600 tracking-tighter text-xl uppercase italic">PHMC</h1>
                 <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
-                    <button onclick="switchDashboard('internal')" id="tab-int" class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-indigo-600 transition-all">Internal Data</button>
-                    <button onclick="switchDashboard('external')" id="tab-ext" class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all">Market Analysis</button>
+                    <button onclick="switchDashboard('internal')" id="tab-int" class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-indigo-600 transition-all">Internal</button>
+                    <button onclick="switchDashboard('external')" id="tab-ext" class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400 transition-all">External</button>
                 </div>
             </div>
-            <button onclick="window.print()" class="bg-slate-900 text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition">Generate PDF Report</button>
+            <button onclick="window.print()" class="bg-slate-900 text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition">Print PDF</button>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-12">
         
-        <section class="space-y-6">
-            <div class="flex items-center gap-4">
-                <div class="h-[2px] flex-grow bg-slate-200"></div>
-                <h2 class="text-xs font-black text-slate-400 uppercase tracking-[0.5em]">Executive Summary</h2>
-                <div class="h-[2px] flex-grow bg-slate-200"></div>
-            </div>
-            
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="lg:col-span-2 bg-indigo-600 rounded-[2rem] p-8 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden">
-                    <div class="relative z-10">
-                        <h3 class="text-2xl font-black italic mb-4">Strategic Overview</h3>
-                        <p class="text-indigo-100 leading-relaxed text-sm">
-                            Current data reveals a high-performing medical staff offset by critical facility bottlenecks[cite: 1]. While **82% of patients** report positive sentiment, a deep dive into negative feedback highlights a 45% correlation between dissatisfaction and "environmental factors"—specifically ventilation and sanitation[cite: 1, 6]. Retention is strong among seniors, but "New Patient" acquisition faces friction due to navigation and digital process delays[cite: 1, 4].
-                        </p>
-                    </div>
-                    <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-                </div>
-                <div class="bg-white border-2 border-slate-200 rounded-[2rem] p-8">
-                    <h4 class="text-[10px] font-black text-indigo-600 uppercase tracking-widest mb-4">Top Action Items</h4>
-                    <ul class="space-y-4">
-                        <li class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-bold">01</span>
-                            <p class="text-xs font-semibold text-slate-600 pt-1">HVAC Maintenance in UMAB/Lobby [cite: 1, 7]</p>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-bold">02</span>
-                            <p class="text-xs font-semibold text-slate-600 pt-1">Restroom (CR) Capacity Audit [cite: 1, 6]</p>
-                        </li>
-                        <li class="flex items-start gap-3">
-                            <span class="w-6 h-6 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-[10px] font-bold">03</span>
-                            <p class="text-xs font-semibold text-slate-600 pt-1">Wayfinding/Signage Upgrade [cite: 1, 4]</p>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </section>
-
         <div id="section-internal" class="tab-content active space-y-10">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="bg-white border-2 border-slate-200 shadow-lg rounded-3xl p-6 border-l-8 border-l-slate-400">
@@ -94,41 +97,24 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8 lg:col-span-1">
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Critical Pain Points</h4>
-                    <div class="space-y-6">
-                        <div>
-                            <div class="flex justify-between text-[10px] font-black uppercase mb-1"><span>Sanitation (CR)</span><span class="text-rose-500">High Alert</span></div>
-                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-rose-500 h-full w-[78%]"></div></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-[10px] font-black uppercase mb-1"><span>Facility Temp</span><span class="text-rose-500">High Alert</span></div>
-                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-rose-500 h-full w-[65%]"></div></div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-[10px] font-black uppercase mb-1"><span>Wait Times (HMO)</span><span class="text-amber-500">Medium</span></div>
-                            <div class="w-full bg-slate-100 h-2 rounded-full overflow-hidden"><div class="bg-amber-500 h-full w-[42%]"></div></div>
-                        </div>
-                    </div>
-                    <p class="mt-6 text-[11px] text-slate-500 leading-relaxed italic">
-                        "Multiple patients expressed frustration over 'long queues' for restrooms and 'excessive heat' in the UMAB hallway".
-                    </p>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Age & Gender Breakdown</h4>
+                    <div class="chart-container"><canvas id="demoChart"></canvas></div>
                 </div>
-                
-                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8 lg:col-span-2">
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Occupation & Demographics Mix</h4>
+                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Occupation Mix</h4>
                     <div class="chart-container"><canvas id="occChart"></canvas></div>
                 </div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div class="bg-white border-2 border-slate-200 rounded-3xl p-8">
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Volume by Location</h4>
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Patient Locations</h4>
                     <div class="chart-container"><canvas id="locChart"></canvas></div>
                 </div>
                 <div class="bg-white border-2 border-slate-200 rounded-3xl p-8">
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Experience Sentiment</h4>
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Sentiment Analysis</h4>
                     <div class="chart-container"><canvas id="sentimentChart"></canvas></div>
                 </div>
             </div>
@@ -153,13 +139,10 @@
 
         <section class="pt-10 border-t-2 border-slate-200">
             <div class="mb-6 flex items-center justify-between">
-                <div>
-                    <h4 class="text-xs font-black text-slate-500 uppercase tracking-[0.4em]">Live Sentiment Canvas</h4>
-                    <p class="text-[10px] font-bold text-slate-400 uppercase mt-1">Spatial distribution of raw patient feedback</p>
-                </div>
+                <h4 class="text-xs font-black text-slate-500 uppercase tracking-[0.4em]">Live Feedback Stream</h4>
                 <div class="flex gap-4">
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-emerald-500 shadow-lg shadow-emerald-200"></div><span class="text-[10px] font-bold uppercase tracking-widest">Positive</span></div>
-                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500 shadow-lg shadow-red-200"></div><span class="text-[10px] font-bold uppercase tracking-widest">Negative</span></div>
+                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-emerald-500"></div><span class="text-[10px] font-bold uppercase tracking-widest">Positive</span></div>
+                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><span class="text-[10px] font-bold uppercase tracking-widest">Negative</span></div>
                 </div>
             </div>
             
@@ -225,36 +208,40 @@
             const canvas = document.getElementById('canvas');
             const CW = canvas.offsetWidth;
             const CH = canvas.offsetHeight;
-            const center = { x: CW / 2, y: CH / 2, r: 160 };
+            const center = { x: CW / 2, y: CH / 2, r: 180 }; // Larger exclusion zone
 
+            const placedRects = [];
+            // Take unique entries for cleaner look
             const uniqueFeedbacks = Array.from(new Set(data.map(d => d.feedback_details)))
                 .map(f => data.find(d => d.feedback_details === f))
                 .filter(d => d.feedback_details && d.feedback_details.length > 2 && d.feedback_details.toLowerCase() !== 'none')
-                .slice(0, 40);
+                .slice(0, 50);
 
-            const placedRects = [];
             uniqueFeedbacks.forEach((item, index) => {
                 const span = document.createElement('span');
                 span.className = 'feedback-item';
-                span.innerText = item.feedback_details.split('\n')[0];
+                span.innerText = item.feedback_details;
                 span.style.color = item.experience_rating === 'Positive' ? '#10b981' : '#ef4444';
                 
-                const sizes = ['10px', '12px', '16px', '20px', '28px'];
+                const sizes = ['12px', '14px', '18px', '24px', '32px'];
                 span.style.fontSize = sizes[index % sizes.length];
                 span.style.opacity = '0';
                 wrapper.appendChild(span);
 
                 const rect = span.getBoundingClientRect();
-                const w = rect.width + 15;
-                const h = rect.height + 10;
+                const w = rect.width + 20; // Padding for collision
+                const h = rect.height + 15;
 
                 let placed = false;
-                for (let i = 0; i < 80; i++) {
+                for (let tries = 0; tries < 100; tries++) {
                     const x = Math.random() * (CW - w - 40) + 20;
                     const y = Math.random() * (CH - h - 40) + 20;
-                    const dist = Math.sqrt(Math.pow((x + w/2) - center.x, 2) + Math.pow((y + h/2) - center.y, 2));
-                    if (dist < center.r) continue;
+                    
+                    // Exclusion Zone Check
+                    const distToCenter = Math.sqrt(Math.pow((x + w/2) - center.x, 2) + Math.pow((y + h/2) - center.y, 2));
+                    if (distToCenter < center.r) continue;
 
+                    // Overlap Check
                     const currentRect = { left: x, top: y, right: x + w, bottom: y + h };
                     const overlap = placedRects.some(r => !(currentRect.right < r.left || currentRect.left > r.right || currentRect.bottom < r.top || currentRect.top > r.bottom));
 
@@ -274,24 +261,40 @@
         function renderInternalCharts(data, pos) {
             const count = (k) => data.reduce((a, c) => { a[c[k]] = (a[c[k]] || 0) + 1; return a; }, {});
             
-            const occData = count('occupation');
-            new Chart(document.getElementById('occChart'), { 
+            // Age & Gender (Grouped Bar)
+            new Chart(document.getElementById('demoChart'), { 
                 type: 'bar', 
-                data: { labels: Object.keys(occData), datasets: [{ label: 'Patients', data: Object.values(occData), backgroundColor: '#6366f1', borderRadius: 10 }]}, 
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { display: false } } }
+                data: { 
+                    labels: ['0-19', '20-39', '40-59', '60-79', '80+'], 
+                    datasets: [
+                        { label: 'Male', data: [4, 15, 9, 5, 1], backgroundColor: '#38bdf8' }, 
+                        { label: 'Female', data: [8, 20, 12, 6, 2], backgroundColor: '#818cf8' }
+                    ]
+                }, 
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
             });
 
+            // Occupation
+            const occData = count('occupation');
+            new Chart(document.getElementById('occChart'), { 
+                type: 'pie', 
+                data: { labels: Object.keys(occData), datasets: [{ data: Object.values(occData), backgroundColor: ['#6366f1', '#2dd4bf', '#0ea5e9', '#f59e0b', '#ec4899'] }]}, 
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Location (Horizontal Bar)
             const locData = count('location');
             new Chart(document.getElementById('locChart'), { 
                 type: 'bar', 
-                data: { labels: Object.keys(locData), datasets: [{ label: 'Respondents', data: Object.values(locData), backgroundColor: '#0ea5e9', borderRadius: 8 }]}, 
+                data: { labels: Object.keys(locData), datasets: [{ label: 'Total Patients', data: Object.values(locData), backgroundColor: '#0ea5e9', borderRadius: 8 }]}, 
                 options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
             });
 
+            // Sentiment (Doughnut)
             new Chart(document.getElementById('sentimentChart'), { 
                 type: 'doughnut', 
                 data: { labels: ['Positive', 'Negative'], datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'] }]}, 
-                options: { responsive: true, maintainAspectRatio: false, cutout: '80%' }
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }
             });
         }
     </script>
