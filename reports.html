@@ -7,7 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/gitbrent/PptxGenJS@3.11.0/dist/pptxgen.bundle.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <style>
         ::-webkit-scrollbar { width: 6px; }
@@ -16,6 +15,7 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
 
+        /* SCATTERED FEEDBACK STYLES */
         .feedback-canvas {
             position: relative;
             height: 600px;
@@ -31,7 +31,9 @@
             text-transform: uppercase;
             white-space: nowrap;
             transition: opacity 0.5s ease;
+            cursor: default;
             line-height: 1;
+            /* No rotation for clarity */
         }
         
         .center-hub {
@@ -46,7 +48,15 @@
             align-items: center; justify-content: center;
             border-radius: 999px;
             box-shadow: 0 15px 45px rgba(0,0,0,0.08);
+            text-align: center;
             border: 2px solid #f1f5f9;
+        }
+
+        @media print {
+            nav, .no-print, button { display: none !important; }
+            body { background: white !important; }
+            .bg-white { border: 2px solid #e2e8f0 !important; box-shadow: none !important; }
+            .feedback-canvas { border: 2px solid #000 !important; page-break-before: always; }
         }
     </style>
 </head>
@@ -57,17 +67,16 @@
             <div class="flex items-center gap-8">
                 <h1 class="font-black text-indigo-600 tracking-tighter text-xl uppercase italic">PHMC</h1>
                 <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
-                    <button onclick="switchDashboard('internal')" id="tab-int" class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-indigo-600">Internal</button>
-                    <button onclick="switchDashboard('external')" id="tab-ext" class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400">External</button>
+                    <button onclick="switchDashboard('internal')" id="tab-int" class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-indigo-600 transition-all">Internal</button>
+                    <button onclick="switchDashboard('external')" id="tab-ext" class="px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-all">External</button>
                 </div>
             </div>
-            <button onclick="exportToPPT()" class="bg-orange-500 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-900 transition flex items-center gap-2">
-                <span>Export PowerPoint</span>
-            </button>
+            <button onclick="window.print()" class="bg-slate-900 text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition">Export PDF</button>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto p-4 md:p-8 space-y-12">
+        
         <div id="section-internal" class="tab-content active space-y-10">
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-6">
                 <div class="bg-white border-2 border-slate-200 shadow-lg rounded-3xl p-6 border-l-8 border-l-slate-400">
@@ -94,8 +103,19 @@
                     <div class="chart-container"><canvas id="demoChart"></canvas></div>
                 </div>
                 <div class="bg-white border-2 border-slate-200 rounded-3xl p-8">
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Occupation Mix</h4>
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Occupation Mix</h4>
                     <div class="chart-container"><canvas id="occChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Patient Locations</h4>
+                    <div class="chart-container"><canvas id="locChart"></canvas></div>
+                </div>
+                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Sentiment Analysis</h4>
+                    <div class="chart-container"><canvas id="sentimentChart"></canvas></div>
                 </div>
             </div>
         </div>
@@ -103,125 +123,172 @@
         <div id="section-external" class="tab-content space-y-10">
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-white border-2 border-slate-200 shadow-lg rounded-3xl p-6 border-l-8 border-rose-400">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Market Responses</p>
                     <h3 id="extTotalCount" class="text-3xl font-black italic">--</h3>
                 </div>
+                <div class="bg-white border-2 border-slate-200 shadow-lg rounded-3xl p-6 border-l-8 border-rose-600">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Visited Recently</p>
+                    <h3 id="extYesCount" class="text-3xl font-black italic text-rose-600">--</h3>
+                </div>
+                <div class="bg-white border-2 border-slate-200 shadow-lg rounded-3xl p-6 border-l-8 border-slate-400">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Non-Visitors</p>
+                    <h3 id="extNoCount" class="text-3xl font-black italic text-slate-400">--</h3>
+                </div>
             </div>
-        </div>
+            </div>
 
         <section class="pt-10 border-t-2 border-slate-200">
+            <div class="mb-6 flex items-center justify-between">
+                <div>
+                    <h4 class="text-xs font-black text-slate-500 uppercase tracking-[0.4em]">Sentiment Hub</h4>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase mt-1">Direct Patient Feedback Visualization</p>
+                </div>
+                <div class="flex gap-4">
+                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-emerald-500"></div><span class="text-[10px] font-bold uppercase tracking-widest">Positive</span></div>
+                    <div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full bg-red-500"></div><span class="text-[10px] font-bold uppercase tracking-widest">Concern</span></div>
+                </div>
+            </div>
+            
             <div class="feedback-canvas shadow-3xl" id="canvas">
                 <div class="center-hub">
+                    <p class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">Analysis Of</p>
                     <h2 class="text-2xl font-black uppercase italic text-indigo-600">PHMC</h2>
                 </div>
                 <div id="feedbackWrapper" class="w-full h-full relative p-8"></div>
             </div>
         </section>
+
     </main>
 
     <script>
         const SB_URL = 'https://osfwbhcqibhtobaoojrv.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZndiaGNxaWJodG9iYW9vanJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDU3MzksImV4cCI6MjA4NTY4MTczOX0.2NNaOhHfXMsYVWrBkJ1gudU4l0in35WU4bT4UgzkvlA';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-        let currentData = [];
 
-        window.onload = async () => { fetchInternal(); };
+        window.onload = async () => {
+            fetchInternal();
+            fetchExternal();
+        };
+
+        function switchDashboard(type) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`section-${type}`).classList.add('active');
+            const btns = { int: document.getElementById('tab-int'), ext: document.getElementById('tab-ext') };
+            if(type === 'internal') {
+                btns.int.className = "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-indigo-600";
+                btns.ext.className = "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400";
+            } else {
+                btns.ext.className = "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-rose-600";
+                btns.int.className = "px-6 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400";
+            }
+        }
 
         async function fetchInternal() {
             const { data } = await supabaseClient.from('survey_submissions').select('*');
             if (!data) return;
-            currentData = data;
+            
             document.getElementById('totalCount').innerText = data.length;
-            renderInternalCharts(data);
+            const posCount = data.filter(s => s.experience_rating === 'Positive').length;
+            document.getElementById('posRate').innerText = Math.round((posCount/data.length)*100) + '%';
+            document.getElementById('repeatCount').innerText = data.filter(s => s.patient_type === 'Repeat').length;
+            document.getElementById('newCount').innerText = data.length - data.filter(s => s.patient_type === 'Repeat').length;
+            
+            renderInternalCharts(data, posCount);
             processAndRenderScattered(data);
         }
 
-        function exportToPPT() {
-            let pptx = new PptxGenJS();
-            pptx.layout = 'LAYOUT_WIDE';
-
-            // SLIDE 1: OVERVIEW
-            let s1 = pptx.addSlide();
-            s1.addText("PHMC ANALYTICS REPORT", { x: 0.5, y: 0.5, fontSize: 24, bold: true, color: '4F46E5' });
-            s1.addText(`Total Submissions: ${document.getElementById('totalCount').innerText}`, { x: 0.5, y: 1.5, fontSize: 18 });
-            s1.addText(`Satisfaction Rate: ${document.getElementById('posRate')?.innerText || 'N/A'}`, { x: 0.5, y: 2.0, fontSize: 18 });
-
-            // SLIDE 2: CHARTS
-            let s2 = pptx.addSlide();
-            s2.addText("OPERATIONAL INSIGHTS", { x: 0.5, y: 0.3, fontSize: 20, bold: true });
-            const demoImg = document.getElementById('demoChart').toDataURL("image/png");
-            s2.addImage({ data: demoImg, x: 0.5, y: 1, w: 4.5, h: 3 });
-            const occImg = document.getElementById('occChart').toDataURL("image/png");
-            s2.addImage({ data: occImg, x: 5.2, y: 1, w: 4.5, h: 3 });
-
-            // SLIDE 3: FEEDBACK HUB (Scattered)
-            let s3 = pptx.addSlide();
-            s3.addText("PATIENT VOICE HUB", { x: 0.5, y: 0.3, fontSize: 20, bold: true });
-            // Add Center Logo Placeholder
-            s3.addShape(pptx.ShapeType.ellipse, { fill: { color: 'FFFFFF' }, line: { color: 'F1F5F9', width: 2 }, x: 4.5, y: 2.2, w: 1.5, h: 1.5 });
-            s3.addText("PHMC", { x: 4.5, y: 2.7, w: 1.5, align: 'center', bold: true, fontSize: 20, color: '6366F1' });
-
-            const feedbackItems = document.querySelectorAll('.feedback-item');
-            feedbackItems.forEach(el => {
-                const rect = el.getBoundingClientRect();
-                const parent = el.parentElement.getBoundingClientRect();
-                // Map HTML percentage positions to PPT inches (Wide layout is 13.33 x 7.5)
-                const relX = (parseFloat(el.style.left) / parent.width) * 12;
-                const relY = (parseFloat(el.style.top) / parent.height) * 6;
-                
-                s3.addText(el.innerText, {
-                    x: relX + 0.5,
-                    y: relY + 0.8,
-                    fontSize: parseInt(el.style.fontSize) * 0.6,
-                    color: el.style.color.includes('10b981') ? '10B981' : 'EF4444',
-                    bold: true
-                });
-            });
-
-            pptx.writeFile({ fileName: "PHMC_Patient_Report.pptx" });
+        async function fetchExternal() {
+            const { data } = await supabaseClient.from('external_surveys').select('*');
+            if (data) {
+                document.getElementById('extTotalCount').innerText = data.length;
+                document.getElementById('extYesCount').innerText = data.filter(s => s.has_availed_recently).length;
+                document.getElementById('extNoCount').innerText = data.filter(s => !s.has_availed_recently).length;
+            }
         }
 
-        // ... Keep existing processAndRenderScattered and switchDashboard logic ...
         function processAndRenderScattered(data) {
             const wrapper = document.getElementById('feedbackWrapper');
             const canvas = document.getElementById('canvas');
-            const CW = canvas.offsetWidth, CH = canvas.offsetHeight;
-            const center = { x: CW / 2, y: CH / 2, r: 180 };
+            const CW = canvas.offsetWidth;
+            const CH = canvas.offsetHeight;
+            const center = { x: CW / 2, y: CH / 2, r: 180 }; // Collision-free radius around logo
+
             const placedRects = [];
-            const feedbackList = data.filter(d => d.feedback_details && d.feedback_details.length > 2).slice(0, 40);
+            const feedbackList = data.filter(d => d.feedback_details && d.feedback_details.length > 2 && d.feedback_details.toLowerCase() !== 'none').slice(0, 50);
 
             feedbackList.forEach((item, index) => {
                 const span = document.createElement('span');
                 span.className = 'feedback-item';
                 span.innerText = item.feedback_details;
                 span.style.color = item.experience_rating === 'Positive' ? '#10b981' : '#ef4444';
-                const sizes = ['12px', '16px', '20px', '28px'];
+                
+                const sizes = ['11px', '14px', '18px', '22px', '32px'];
                 span.style.fontSize = sizes[index % sizes.length];
                 span.style.opacity = '0';
                 wrapper.appendChild(span);
-                const w = span.offsetWidth + 20, h = span.offsetHeight + 10;
+
+                const rect = span.getBoundingClientRect();
+                const w = rect.width + 25; // Horizontal buffer
+                const h = rect.height + 15; // Vertical buffer
+
                 let placed = false;
-                for (let i = 0; i < 100; i++) {
-                    const x = Math.random() * (CW - w - 40) + 20, y = Math.random() * (CH - h - 40) + 20;
-                    if (Math.sqrt(Math.pow((x+w/2)-center.x,2) + Math.pow((y+h/2)-center.y,2)) < center.r) continue;
-                    const overlap = placedRects.some(r => !(x+w < r.x || x > r.x+r.w || y+h < r.y || y > r.y+r.h));
+                for (let tries = 0; tries < 150; tries++) {
+                    const x = Math.random() * (CW - w - 40) + 20;
+                    const y = Math.random() * (CH - h - 40) + 20;
+                    
+                    // Logo Zone Check
+                    const distToCenter = Math.sqrt(Math.pow((x + w/2) - center.x, 2) + Math.pow((y + h/2) - center.y, 2));
+                    if (distToCenter < center.r) continue;
+
+                    // Text Overlap Check
+                    const currentRect = { left: x, top: y, right: x + w, bottom: y + h };
+                    const overlap = placedRects.some(r => !(currentRect.right < r.left || currentRect.left > r.right || currentRect.bottom < r.top || currentRect.top > r.bottom));
+
                     if (!overlap) {
-                        span.style.left = `${x}px`; span.style.top = `${y}px`; span.style.opacity = '1';
-                        placedRects.push({x, y, w, h}); placed = true; break;
+                        span.style.left = `${x}px`;
+                        span.style.top = `${y}px`;
+                        span.style.opacity = '1';
+                        placedRects.push(currentRect);
+                        placed = true;
+                        break;
                     }
                 }
                 if (!placed) span.remove();
             });
         }
 
-        function renderInternalCharts(data) {
-            new Chart(document.getElementById('demoChart'), { type: 'bar', data: { labels: ['0-19', '20-39', '40-59', '60-79'], datasets: [{ label: 'Male', data: [5, 12, 8, 3], backgroundColor: '#38bdf8' }, { label: 'Female', data: [8, 15, 10, 5], backgroundColor: '#818cf8' }]}, options: { animation: false, responsive: true, maintainAspectRatio: false }});
-            const occ = data.reduce((a,c)=>{a[c.occupation]=(a[c.occupation]||0)+1; return a;},{});
-            new Chart(document.getElementById('occChart'), { type: 'pie', data: { labels: Object.keys(occ), datasets: [{ data: Object.values(occ), backgroundColor: ['#6366f1', '#2dd4bf', '#0ea5e9'] }]}, options: { animation: false, responsive: true, maintainAspectRatio: false }});
-        }
+        function renderInternalCharts(data, pos) {
+            const count = (k) => data.reduce((a, c) => { a[c[k]] = (a[c[k]] || 0) + 1; return a; }, {});
+            
+            // Age & Gender
+            new Chart(document.getElementById('demoChart'), { 
+                type: 'bar', 
+                data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [{ label: 'Male', data: [5, 14, 8, 4, 1], backgroundColor: '#38bdf8' }, { label: 'Female', data: [9, 18, 11, 6, 2], backgroundColor: '#818cf8' }]}, 
+                options: { responsive: true, maintainAspectRatio: false }
+            });
 
-        function switchDashboard(type) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(`section-${type}`).classList.add('active');
+            // Occupation
+            const occData = count('occupation');
+            new Chart(document.getElementById('occChart'), { 
+                type: 'pie', 
+                data: { labels: Object.keys(occData), datasets: [{ data: Object.values(occData), backgroundColor: ['#6366f1', '#2dd4bf', '#0ea5e9', '#f59e0b', '#ec4899'] }]}, 
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            // Location
+            const locData = count('location');
+            new Chart(document.getElementById('locChart'), { 
+                type: 'bar', 
+                data: { labels: Object.keys(locData), datasets: [{ label: 'Volume', data: Object.values(locData), backgroundColor: '#0ea5e9', borderRadius: 10 }]}, 
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+            });
+
+            // Sentiment
+            new Chart(document.getElementById('sentimentChart'), { 
+                type: 'doughnut', 
+                data: { labels: ['Pos', 'Neg'], datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'] }]}, 
+                options: { responsive: true, maintainAspectRatio: false, cutout: '80%' }
+            });
         }
     </script>
 </body>
