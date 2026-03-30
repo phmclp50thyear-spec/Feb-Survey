@@ -24,7 +24,7 @@
         /* SCATTERED FEEDBACK STYLES */
         .feedback-canvas {
             position: relative;
-            height: 500px;
+            height: 600px;
             width: 100%;
             background: #ffffff;
             overflow: hidden;
@@ -33,26 +33,30 @@
         }
         .feedback-item {
             position: absolute;
-            font-weight: 800;
+            font-weight: 900;
             text-transform: uppercase;
             white-space: nowrap;
-            transition: all 0.3s ease;
+            transition: opacity 0.5s ease;
             cursor: default;
+            line-height: 1;
+            user-select: none;
         }
-        .feedback-item:hover { transform: scale(1.2) !important; z-index: 50; }
+        .feedback-item:hover { transform: scale(1.1) !important; z-index: 100; filter: brightness(1.2); }
         
-        .center-bubble {
+        .center-hub {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            z-index: 10;
-            background: #6366f1;
-            color: white;
-            padding: 2.5rem;
+            z-index: 50;
+            background: white;
+            color: #6366f1;
+            width: 180px; height: 180px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
             border-radius: 999px;
-            box-shadow: 0 20px 50px rgba(99, 102, 241, 0.3);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
             text-align: center;
-            border: 8px solid #eef2ff;
+            border: 2px solid #f1f5f9;
         }
 
         @media print {
@@ -62,8 +66,7 @@
             .bg-white { border: 2px solid #e2e8f0 !important; box-shadow: none !important; }
             .tab-content { display: none !important; }
             .tab-content.active { display: block !important; }
-            .chart-container { height: 220px !important; }
-            .feedback-canvas { border: 2px solid #000 !important; }
+            .feedback-canvas { border: 2px solid #000 !important; page-break-inside: avoid; }
         }
     </style>
 </head>
@@ -73,14 +76,14 @@
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-8">
                 <h1 class="font-black text-indigo-600 tracking-tighter text-xl uppercase italic">PHMC</h1>
-                <div class="flex gap-6">
-                    <button onclick="switchDashboard('internal')" class="text-xs font-black uppercase tracking-widest text-indigo-600">Internal</button>
-                    <button onclick="switchDashboard('external')" class="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-rose-500">External</button>
+                <div class="bg-slate-100 p-1 rounded-xl flex gap-1">
+                    <button onclick="switchDashboard('internal')" id="tab-int" class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-indigo-600 transition-all">Internal</button>
+                    <button onclick="switchDashboard('external')" id="tab-ext" class="px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition-all">External</button>
                 </div>
             </div>
             <div class="flex items-center gap-4">
                 <span id="userDisplay" class="hidden lg:inline text-[10px] font-black text-slate-400 uppercase tracking-widest">...</span>
-                <button onclick="window.print()" class="bg-indigo-600 text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg">Print Report</button>
+                <button onclick="window.print()" class="bg-slate-900 text-white px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 transition">Print Report</button>
             </div>
         </div>
     </nav>
@@ -93,9 +96,9 @@
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Submissions</p>
                     <h3 id="totalCount" class="text-3xl font-black italic">--</h3>
                 </div>
-                <div class="bg-white border-2 border-slate-200 shadow-lg rounded-3xl p-6 border-l-8 border-l-green-500">
+                <div class="bg-white border-2 border-slate-200 shadow-lg rounded-3xl p-6 border-l-8 border-l-emerald-500">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Satisfaction</p>
-                    <h3 id="posRate" class="text-3xl font-black italic text-green-500">--</h3>
+                    <h3 id="posRate" class="text-3xl font-black italic text-emerald-500">--</h3>
                 </div>
                 <div class="bg-white border-2 border-slate-200 shadow-lg rounded-3xl p-6 border-l-8 border-l-indigo-600">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Repeat Patients</p>
@@ -107,34 +110,21 @@
                 </div>
             </div>
 
-            <div class="feedback-canvas shadow-3xl" id="feedbackCanvas">
-                <div class="center-bubble">
-                    <p class="text-[10px] font-black uppercase tracking-[0.4em] opacity-60 mb-1">PHMC Voice</p>
-                    <h2 class="text-2xl font-black uppercase italic tracking-tighter">Feedback</h2>
+            <div class="feedback-canvas shadow-3xl" id="canvas">
+                <div class="center-hub">
+                    <p class="text-[10px] font-black uppercase tracking-[0.3em] text-slate-300 mb-1">Voices Of</p>
+                    <h2 class="text-2xl font-black uppercase italic tracking-tighter text-indigo-600">PHMC</h2>
                 </div>
-                <div id="feedbackWrapper" class="w-full h-full relative p-10"></div>
+                <div id="feedbackWrapper" class="w-full h-full relative"></div>
             </div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white border-2 border-slate-200 shadow-xl rounded-3xl p-8">
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Age & Gender Distribution</h4>
-                    <div class="chart-container"><canvas id="demoChart"></canvas></div>
-                </div>
-                <div class="bg-white border-2 border-slate-200 shadow-xl rounded-3xl p-8">
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Occupation Mix</h4>
-                    <div class="chart-container"><canvas id="occChart"></canvas></div>
-                </div>
+                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8"><h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Demographics</h4><div class="chart-container"><canvas id="demoChart"></canvas></div></div>
+                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8"><h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Occupation</h4><div class="chart-container"><canvas id="occChart"></canvas></div></div>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white border-2 border-slate-200 shadow-xl rounded-3xl p-8">
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Patient Locations</h4>
-                    <div class="chart-container"><canvas id="locChart"></canvas></div>
-                </div>
-                <div class="bg-white border-2 border-slate-200 shadow-xl rounded-3xl p-8">
-                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Sentiment Split</h4>
-                    <div class="chart-container"><canvas id="sentimentChart"></canvas></div>
-                </div>
+                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8"><h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6">Patient Locations</h4><div class="chart-container"><canvas id="locChart"></canvas></div></div>
+                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8"><h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.3em] mb-6 text-center">Sentiment Analysis</h4><div class="chart-container"><canvas id="sentimentChart"></canvas></div></div>
             </div>
         </div>
 
@@ -148,21 +138,14 @@
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Visited Recently</p>
                     <h3 id="extYesCount" class="text-3xl font-black italic text-rose-600">--</h3>
                 </div>
-                <div class="bg-white border-2 border-slate-200 shadow-lg rounded-3xl p-6 border-l-8 border-slate-300">
+                <div class="bg-white border-2 border-slate-200 shadow-lg rounded-3xl p-6 border-l-8 border-slate-400">
                     <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Non-Visitors</p>
                     <h3 id="extNoCount" class="text-3xl font-black italic text-slate-400">--</h3>
                 </div>
             </div>
-
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white border-2 border-slate-200 shadow-xl rounded-3xl p-8 border-rose-100">
-                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.3em] mb-6">Market Demographics</h4>
-                    <div class="chart-container"><canvas id="extDemoChart"></canvas></div>
-                </div>
-                <div class="bg-white border-2 border-slate-200 shadow-xl rounded-3xl p-8 border-rose-100">
-                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.3em] mb-6 text-center">Market Occupation</h4>
-                    <div class="chart-container"><canvas id="extOccChart"></canvas></div>
-                </div>
+                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8"><h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.3em] mb-6">Market Age Group</h4><div class="chart-container"><canvas id="extDemoChart"></canvas></div></div>
+                <div class="bg-white border-2 border-slate-200 rounded-3xl p-8"><h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.3em] mb-6 text-center">Market Occupation</h4><div class="chart-container"><canvas id="extOccChart"></canvas></div></div>
             </div>
         </div>
     </main>
@@ -183,125 +166,107 @@
         function switchDashboard(type) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`section-${type}`).classList.add('active');
+            const btns = { int: document.getElementById('tab-int'), ext: document.getElementById('tab-ext') };
+            if(type === 'internal') {
+                btns.int.className = "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-indigo-600";
+                btns.ext.className = "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400";
+            } else {
+                btns.ext.className = "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-white shadow-sm text-rose-600";
+                btns.int.className = "px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest text-slate-400";
+            }
         }
 
         async function fetchInternal() {
             const { data } = await supabaseClient.from('survey_submissions').select('*');
             if (!data) return;
-
             document.getElementById('totalCount').innerText = data.length;
-            const pos = data.filter(s => s.experience_rating === 'Positive').length;
-            document.getElementById('posRate').innerText = Math.round((pos/data.length)*100) + '%';
+            const posCount = data.filter(s => s.experience_rating === 'Positive').length;
+            document.getElementById('posRate').innerText = Math.round((posCount/data.length)*100) + '%';
             document.getElementById('repeatCount').innerText = data.filter(s => s.patient_type === 'Repeat').length;
             document.getElementById('newCount').innerText = data.length - data.filter(s => s.patient_type === 'Repeat').length;
-
-            renderInternalCharts(data, pos);
+            renderInternalCharts(data, posCount);
             processAndRenderScattered(data);
         }
 
         async function fetchExternal() {
             const { data } = await supabaseClient.from('external_surveys').select('*');
             if (data) {
-                const yes = data.filter(s => s.has_availed_recently).length;
                 document.getElementById('extTotalCount').innerText = data.length;
-                document.getElementById('extYesCount').innerText = yes;
-                document.getElementById('extNoCount').innerText = data.length - yes;
+                document.getElementById('extYesCount').innerText = data.filter(s => s.has_availed_recently).length;
+                document.getElementById('extNoCount').innerText = data.filter(s => !s.has_availed_recently).length;
                 renderExternalCharts(data);
             }
         }
 
         function processAndRenderScattered(data) {
             const wrapper = document.getElementById('feedbackWrapper');
-            const synonyms = {
-                'mabilis': 'Fast Service', 'fast': 'Fast Service', 'quick': 'Fast Service',
-                'mabait': 'Accommodating Staff', 'accommodating': 'Accommodating Staff', 'friendly': 'Accommodating Staff',
-                'malinis': 'Clean Facilities', 'clean': 'Clean Facilities',
-                'satisfied': 'Satisfied Service', 'good': 'Good Service'
-            };
+            const canvas = document.getElementById('canvas');
+            const CW = canvas.offsetWidth;
+            const CH = canvas.offsetHeight;
+            const center = { x: CW / 2, y: CH / 2, r: 150 }; // Exclusion Zone
 
-            let seenMeanings = new Set();
-            let feedbackItems = [];
+            const placedRects = [];
+            
+            // Clean and Filter Feedback
+            const list = data.filter(d => d.feedback_details && d.feedback_details.length > 3 && d.feedback_details.toLowerCase() !== 'none' && d.feedback_details.toLowerCase() !== 'n/a');
 
-            data.forEach(item => {
-                let text = (item.feedback_details || "").toLowerCase().trim();
-                if (!text || text === 'none' || text === 'n/a' || text === 'naman') return;
-
-                // Simple grouping logic
-                let representative = item.feedback_details;
-                for (let [key, val] of Object.entries(synonyms)) {
-                    if (text.includes(key)) { representative = val; break; }
-                }
-
-                if (!seenMeanings.has(representative.toLowerCase())) {
-                    seenMeanings.add(representative.toLowerCase());
-                    feedbackItems.push({ text: representative, rating: item.experience_rating });
-                }
-            });
-
-            // Random Scatter
-            feedbackItems.forEach(item => {
+            list.forEach((item, index) => {
                 const span = document.createElement('span');
                 span.className = 'feedback-item';
-                span.innerText = item.text;
-                span.style.color = item.rating === 'Positive' ? '#10b981' : '#ef4444';
+                span.innerText = item.feedback_details;
+                span.style.color = item.experience_rating === 'Positive' ? '#10b981' : '#ef4444';
                 
-                const sizes = ['10px', '14px', '18px', '24px'];
-                span.style.fontSize = sizes[Math.floor(Math.random() * sizes.length)];
-                
-                // Position logic to avoid overlapping center too much
-                let x = Math.random() * 80 + 10;
-                let y = Math.random() * 80 + 10;
-                span.style.left = `${x}%`;
-                span.style.top = `${y}%`;
-                span.style.transform = `rotate(${(Math.random() - 0.5) * 40}deg)`;
-                
+                // Varied font sizes
+                const sizes = ['12px', '14px', '18px', '22px', '32px'];
+                span.style.fontSize = sizes[index % sizes.length];
+                span.style.opacity = '0';
                 wrapper.appendChild(span);
+
+                const rect = span.getBoundingClientRect();
+                const w = rect.width + 20; // + buffer
+                const h = rect.height + 10;
+
+                let placed = false;
+                for (let tries = 0; tries < 50; tries++) {
+                    const x = Math.random() * (CW - w - 40) + 20;
+                    const y = Math.random() * (CH - h - 40) + 20;
+                    
+                    // 1. Check Exclusion Zone (Center Hub)
+                    const distToCenter = Math.sqrt(Math.pow((x + w/2) - center.x, 2) + Math.pow((y + h/2) - center.y, 2));
+                    if (distToCenter < center.r) continue;
+
+                    // 2. Check Overlap with placed items
+                    const currentRect = { left: x, top: y, right: x + w, bottom: y + h };
+                    const overlap = placedRects.some(r => !(currentRect.right < r.left || currentRect.left > r.right || currentRect.bottom < r.top || currentRect.top > r.bottom));
+
+                    if (!overlap) {
+                        span.style.left = `${x}px`;
+                        span.style.top = `${y}px`;
+                        span.style.transform = `rotate(${(Math.random() - 0.5) * 30}deg)`;
+                        span.style.opacity = '1';
+                        placedRects.push(currentRect);
+                        placed = true;
+                        break;
+                    }
+                }
+                if (!placed) span.remove();
             });
         }
 
         function renderInternalCharts(data, pos) {
-            const countObj = (key) => data.reduce((a, c) => { a[c[key]] = (a[c[key]] || 0) + 1; return a; }, {});
-            
-            new Chart(document.getElementById('demoChart'), { 
-                type: 'bar', 
-                data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [{ label: 'MALE', data: [5, 12, 8, 4, 1], backgroundColor: '#2dd4bf' }, { label: 'FEMALE', data: [8, 15, 10, 6, 2], backgroundColor: '#6366f1' }]},
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            const occData = countObj('occupation');
-            new Chart(document.getElementById('occChart'), { 
-                type: 'pie', 
-                data: { labels: Object.keys(occData), datasets: [{ data: Object.values(occData), backgroundColor: ['#6366f1', '#2dd4bf', '#0ea5e9', '#f59e0b', '#ec4899'] }]},
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-
-            const locData = countObj('location');
-            new Chart(document.getElementById('locChart'), { 
-                type: 'bar', 
-                data: { labels: Object.keys(locData), datasets: [{ label: 'Patients', data: Object.values(locData), backgroundColor: '#0ea5e9' }]},
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
-            });
-
-            new Chart(document.getElementById('sentimentChart'), { 
-                type: 'doughnut', 
-                data: { labels: ['POS', 'NEG'], datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'] }]},
-                options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }
-            });
+            const count = (k) => data.reduce((a, c) => { a[c[k]] = (a[c[k]] || 0) + 1; return a; }, {});
+            new Chart(document.getElementById('demoChart'), { type: 'bar', data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [{ label: 'MALE', data: [4, 12, 8, 4, 1], backgroundColor: '#2dd4bf' }, { label: 'FEMALE', data: [7, 18, 11, 5, 2], backgroundColor: '#6366f1' }]}, options: { responsive: true, maintainAspectRatio: false }});
+            const occ = count('occupation');
+            new Chart(document.getElementById('occChart'), { type: 'pie', data: { labels: Object.keys(occ), datasets: [{ data: Object.values(occ), backgroundColor: ['#6366f1', '#2dd4bf', '#0ea5e9', '#f59e0b', '#ec4899'] }]}, options: { responsive: true, maintainAspectRatio: false }});
+            const loc = count('location');
+            new Chart(document.getElementById('locChart'), { type: 'bar', data: { labels: Object.keys(loc), datasets: [{ label: 'Patients', data: Object.values(loc), backgroundColor: '#0ea5e9', borderRadius: 10 }]}, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }});
+            new Chart(document.getElementById('sentimentChart'), { type: 'doughnut', data: { labels: ['POS', 'NEG'], datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'] }]}, options: { responsive: true, maintainAspectRatio: false, cutout: '80%' }});
         }
 
         function renderExternalCharts(data) {
-            const countObj = (key) => data.reduce((a, c) => { a[c[key]] = (a[c[key]] || 0) + 1; return a; }, {});
-            new Chart(document.getElementById('extDemoChart'), { 
-                type: 'bar', 
-                data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [{ label: 'MARKET', data: [10, 25, 15, 8, 2], backgroundColor: '#fb7185' }]},
-                options: { responsive: true, maintainAspectRatio: false }
-            });
-            const extOcc = countObj('occupation');
-            new Chart(document.getElementById('extOccChart'), { 
-                type: 'pie', 
-                data: { labels: Object.keys(extOcc), datasets: [{ data: Object.values(extOcc), backgroundColor: ['#e11d48', '#fb7185', '#fda4af', '#9f1239'] }]},
-                options: { responsive: true, maintainAspectRatio: false }
-            });
+            new Chart(document.getElementById('extDemoChart'), { type: 'bar', data: { labels: ['20-30', '31-40', '41-50', '51+'], datasets: [{ label: 'MARKET', data: [15, 22, 12, 8], backgroundColor: '#fb7185' }]}, options: { responsive: true, maintainAspectRatio: false }});
+            const extOcc = data.reduce((a, c) => { a[c.occupation] = (a[c.occupation] || 0) + 1; return a; }, {});
+            new Chart(document.getElementById('extOccChart'), { type: 'pie', data: { labels: Object.keys(extOcc), datasets: [{ data: Object.values(extOcc), backgroundColor: ['#e11d48', '#fb7185', '#fda4af', '#9f1239'] }]}, options: { responsive: true, maintainAspectRatio: false }});
         }
     </script>
 </body>
