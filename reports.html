@@ -28,7 +28,7 @@
 
         .feedback-canvas {
             position: relative;
-            height: 480px;
+            height: 500px;
             width: 100%;
             background: #ffffff;
             border-radius: 2.5rem;
@@ -41,20 +41,21 @@
             text-transform: uppercase;
             white-space: nowrap;
             line-height: 1;
-            padding: 8px 12px;
-            border-radius: 12px;
+            padding: 10px 14px;
+            border-radius: 14px;
             pointer-events: auto;
-            transition: transform 0.2s ease;
+            transition: all 0.3s ease;
+            display: inline-block;
         }
-        .feedback-item:hover { transform: scale(1.1); z-index: 50 !important; cursor: help; }
+        .feedback-item:hover { transform: scale(1.1); z-index: 100 !important; cursor: default; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         
         .center-hub {
             position: absolute;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            z-index: 40;
+            z-index: 50;
             background: white;
-            width: 140px; height: 140px;
+            width: 150px; height: 150px;
             display: flex; flex-direction: column;
             align-items: center; justify-content: center;
             border-radius: 999px;
@@ -65,7 +66,7 @@
 
         @media print {
             nav, .no-print, button { display: none !important; }
-            .tab-content { display: block !important; }
+            .tab-content { display: block !important; page-break-after: always; }
         }
     </style>
 </head>
@@ -126,6 +127,17 @@
                 <div class="bg-white shadow-xl rounded-[2.5rem] p-8 border border-slate-100">
                     <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.4em] mb-8 text-center">Occupational Mix</h4>
                     <div class="chart-container"><canvas id="occChart"></canvas></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white shadow-xl rounded-[2.5rem] p-8 border border-slate-100">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.4em] mb-8">Patient Locations</h4>
+                    <div class="chart-container"><canvas id="locChart"></canvas></div>
+                </div>
+                <div class="bg-white shadow-xl rounded-[2.5rem] p-8 border border-slate-100">
+                    <h4 class="text-xs font-black text-slate-400 uppercase tracking-[0.4em] mb-8 text-center">Sentiment Balance</h4>
+                    <div class="chart-container"><canvas id="sentimentChart"></canvas></div>
                 </div>
             </div>
 
@@ -220,7 +232,7 @@
             document.getElementById('repeatCount').innerText = repeat;
             document.getElementById('newCount').innerText = data.length - repeat;
             
-            renderCharts(data, 'internal', ['#6366f1', '#2dd4bf', '#0ea5e9', '#8b5cf6', '#10b981']);
+            renderInternalCharts(data, pos);
             renderNoOverlapFeedback(data, 'wrapper-internal', 'canvas-internal', 'feedback_details', 'experience_rating');
         }
 
@@ -231,57 +243,87 @@
             document.getElementById('extYesCount').innerText = data.filter(s => s.has_availed_recently).length;
             document.getElementById('extNoCount').innerText = data.filter(s => !s.has_availed_recently).length;
 
-            renderCharts(data, 'external', ['#e11d48', '#fb7185', '#fda4af', '#9f1239', '#f43f5e']);
+            renderExternalCharts(data);
             renderNoOverlapFeedback(data, 'wrapper-external', 'canvas-external', 'service_details', 'has_availed_recently');
         }
 
-        function renderCharts(data, type, colors) {
-            const prefix = type === 'internal' ? '' : 'ext';
-            const calculateAgeDist = (gender) => {
-                const dist = [0,0,0,0,0];
-                data.filter(s => s.gender === gender).forEach(s => {
-                    let i = s.age <= 19 ? 0 : s.age <= 39 ? 1 : s.age <= 59 ? 2 : s.age <= 79 ? 3 : 4;
-                    dist[i]++;
-                });
-                return dist;
-            };
+        const calculateAgeDist = (data, gender) => {
+            const dist = [0,0,0,0,0];
+            data.filter(s => s.gender === gender).forEach(s => {
+                let i = s.age <= 19 ? 0 : s.age <= 39 ? 1 : s.age <= 59 ? 2 : s.age <= 79 ? 3 : 4;
+                dist[i]++;
+            });
+            return dist;
+        };
 
-            new Chart(document.getElementById(`${prefix}DemoChart`), { 
+        function renderInternalCharts(data, pos) {
+            const colors = ['#6366f1', '#2dd4bf', '#0ea5e9', '#8b5cf6', '#10b981'];
+            
+            new Chart(document.getElementById('demoChart'), { 
                 type: 'bar', 
                 data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [
-                    { label: 'MALE', data: calculateAgeDist('Male'), backgroundColor: colors[1] }, 
-                    { label: 'FEMALE', data: calculateAgeDist('Female'), backgroundColor: colors[2] }
+                    { label: 'MALE', data: calculateAgeDist(data, 'Male'), backgroundColor: '#2dd4bf' }, 
+                    { label: 'FEMALE', data: calculateAgeDist(data, 'Female'), backgroundColor: '#0ea5e9' }
                 ]}, 
                 options: { responsive: true, maintainAspectRatio: false }
             });
 
-            const occCounts = data.reduce((acc, cur) => { acc[cur.occupation] = (acc[cur.occupation] || 0) + 1; return acc; }, {});
-            new Chart(document.getElementById(`${prefix}OccChart`), { 
+            const occ = data.reduce((acc, cur) => { acc[cur.occupation] = (acc[cur.occupation] || 0) + 1; return acc; }, {});
+            new Chart(document.getElementById('occChart'), { 
                 type: 'pie', 
-                data: { labels: Object.keys(occCounts), datasets: [{ data: Object.values(occCounts), backgroundColor: colors }]}, 
+                data: { labels: Object.keys(occ), datasets: [{ data: Object.values(occ), backgroundColor: colors }]}, 
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const loc = data.reduce((acc, cur) => { acc[cur.location] = (acc[cur.location] || 0) + 1; return acc; }, {});
+            new Chart(document.getElementById('locChart'), { 
+                type: 'bar', 
+                data: { labels: Object.keys(loc), datasets: [{ label: 'Patients', data: Object.values(loc), backgroundColor: '#6366f1', borderRadius: 8 }]}, 
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+            });
+
+            new Chart(document.getElementById('sentimentChart'), { 
+                type: 'doughnut', 
+                data: { labels: ['Positive', 'Critical'], datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'] }]}, 
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }
+            });
+        }
+
+        function renderExternalCharts(data) {
+            const colors = ['#e11d48', '#fb7185', '#fda4af', '#9f1239', '#f43f5e'];
+
+            new Chart(document.getElementById('extDemoChart'), { 
+                type: 'bar', 
+                data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [
+                    { label: 'MALE', data: calculateAgeDist(data, 'Male'), backgroundColor: '#e11d48' }, 
+                    { label: 'FEMALE', data: calculateAgeDist(data, 'Female'), backgroundColor: '#fb7185' }
+                ]}, 
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
+            const occ = data.reduce((acc, cur) => { acc[cur.occupation] = (acc[cur.occupation] || 0) + 1; return acc; }, {});
+            new Chart(document.getElementById('extOccChart'), { 
+                type: 'pie', 
+                data: { labels: Object.keys(occ), datasets: [{ data: Object.values(occ), backgroundColor: colors }]}, 
                 options: { responsive: true, maintainAspectRatio: false }
             });
         }
 
-        // SMART FEEDBACK PLACEMENT (Anti-Overlap)
         function renderNoOverlapFeedback(data, wrapperId, canvasId, textKey, statusKey) {
             const wrapper = document.getElementById(wrapperId);
             const canvas = document.getElementById(canvasId);
-            const items = data.filter(d => d[textKey] && d[textKey].toLowerCase() !== 'none').slice(0, 25);
+            wrapper.innerHTML = ""; // Clear existing
             
+            const items = data.filter(d => d[textKey] && d[textKey].toLowerCase() !== 'none').slice(0, 30);
             const placedRects = [];
-            const hubSize = 180; // Buffer area around center
-            const canvasWidth = canvas.offsetWidth;
-            const canvasHeight = canvas.offsetHeight;
-            const centerX = canvasWidth / 2;
-            const centerY = canvasHeight / 2;
+            const hubSize = 180;
+            const canvasW = canvas.offsetWidth, canvasH = canvas.offsetHeight;
 
             items.forEach((item, i) => {
                 const span = document.createElement('span');
                 span.className = 'feedback-item';
                 span.innerText = item[textKey];
                 
-                // Color mapping
                 if(statusKey === 'experience_rating') {
                     span.style.color = item[statusKey] === 'Positive' ? '#10b981' : '#f43f5e';
                     span.style.background = item[statusKey] === 'Positive' ? '#f0fdf4' : '#fef2f2';
@@ -297,15 +339,13 @@
                 let placed = false;
                 let attempts = 0;
 
-                while (!placed && attempts < 100) {
-                    const x = Math.random() * (canvasWidth - rect.w);
-                    const y = Math.random() * (canvasHeight - rect.h);
+                while (!placed && attempts < 150) {
+                    const x = Math.random() * (canvasW - rect.w);
+                    const y = Math.random() * (canvasH - rect.h);
                     
-                    // Check Hub Collision
-                    const distToCenter = Math.sqrt(Math.pow((x + rect.w/2) - centerX, 2) + Math.pow((y + rect.h/2) - centerY, 2));
+                    const distToCenter = Math.sqrt(Math.pow((x + rect.w/2) - canvasW/2, 2) + Math.pow((y + rect.h/2) - canvasH/2, 2));
                     
-                    if (distToCenter > hubSize/2 + 20) {
-                        // Check Element Collision
+                    if (distToCenter > hubSize/2 + 10) {
                         const overlap = placedRects.some(r => (
                             x < r.x + r.w && x + rect.w > r.x &&
                             y < r.y + r.h && y + rect.h > r.y
@@ -320,7 +360,7 @@
                     }
                     attempts++;
                 }
-                if(!placed) span.remove(); // Hide if no space found
+                if(!placed) span.remove();
             });
         }
     </script>
