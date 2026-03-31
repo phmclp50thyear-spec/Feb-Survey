@@ -164,8 +164,7 @@
                                 <th class="pb-4 px-2 text-rose-600 bg-rose-50/50">Critical: Improvements</th>
                             </tr>
                         </thead>
-                        <tbody id="intFeedbackTableBody" class="text-xs divide-y divide-slate-50">
-                            </tbody>
+                        <tbody id="intFeedbackTableBody" class="text-xs divide-y divide-slate-50"></tbody>
                     </table>
                 </div>
             </div>
@@ -198,6 +197,17 @@
                 </div>
             </div>
 
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div class="bg-white shadow-xl rounded-[2.5rem] p-8 border border-rose-100">
+                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-8">Market Locations</h4>
+                    <div class="chart-container"><canvas id="extLocChart"></canvas></div>
+                </div>
+                <div class="bg-white shadow-xl rounded-[2.5rem] p-8 border border-rose-100">
+                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-8 text-center">Market Balance (Recent Visit)</h4>
+                    <div class="chart-container"><canvas id="extBalanceChart"></canvas></div>
+                </div>
+            </div>
+
             <div class="space-y-6">
                 <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em]">External Market Voice</h4>
                 <div class="feedback-canvas border-rose-100" id="canvas-external">
@@ -221,8 +231,7 @@
                                 <th class="pb-4 px-2 text-rose-600 bg-rose-50/50">No: Services</th>
                             </tr>
                         </thead>
-                        <tbody id="extFeedbackTableBody" class="text-xs divide-y divide-slate-50">
-                            </tbody>
+                        <tbody id="extFeedbackTableBody" class="text-xs divide-y divide-slate-50"></tbody>
                     </table>
                 </div>
             </div>
@@ -259,15 +268,12 @@
         async function fetchInternal() {
             const { data } = await supabaseClient.from('survey_submissions').select('*');
             if (!data) return;
-            
             const posList = data.filter(s => s.experience_rating === 'Positive');
             const critList = data.filter(s => s.experience_rating !== 'Positive');
-            
             document.getElementById('totalCount').innerText = data.length;
             document.getElementById('posRate').innerText = data.length > 0 ? Math.round((posList.length/data.length)*100) + '%' : '0%';
             document.getElementById('repeatCount').innerText = data.filter(s => s.patient_type === 'Repeat').length;
             document.getElementById('newCount').innerText = data.length - data.filter(s => s.patient_type === 'Repeat').length;
-            
             renderInternalCharts(data, posList.length);
             renderNoOverlapFeedback(data, 'wrapper-internal', 'canvas-internal', 'feedback_details', 'experience_rating');
             populateComparisonTable('intFeedbackTableBody', posList, critList, 'feedback_details', 'improvements');
@@ -278,12 +284,10 @@
             if (!data) return;
             const yesList = data.filter(s => s.has_availed_recently);
             const noList = data.filter(s => !s.has_availed_recently);
-
             document.getElementById('extTotalCount').innerText = data.length;
             document.getElementById('extYesCount').innerText = yesList.length;
             document.getElementById('extNoCount').innerText = noList.length;
-
-            renderExternalCharts(data);
+            renderExternalCharts(data, yesList.length, noList.length);
             renderNoOverlapFeedback(data, 'wrapper-external', 'canvas-external', 'service_details', 'has_availed_recently');
             populateComparisonTable('extFeedbackTableBody', yesList, noList, 'service_details', 'services');
         }
@@ -292,7 +296,6 @@
             const tbody = document.getElementById(tableId);
             tbody.innerHTML = '';
             const maxLen = Math.max(posList.length, negList.length);
-            
             for (let i = 0; i < maxLen; i++) {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
@@ -322,26 +325,23 @@
                     { label: 'FEMALE', data: calculateAgeDist(data, 'Female'), backgroundColor: '#0ea5e9' }
                 ]}, options: { responsive: true, maintainAspectRatio: false }
             });
-
             const occ = data.reduce((acc, cur) => { acc[cur.occupation] = (acc[cur.occupation] || 0) + 1; return acc; }, {});
             new Chart(document.getElementById('occChart'), { 
                 type: 'pie', data: { labels: Object.keys(occ), datasets: [{ data: Object.values(occ), backgroundColor: colors }]}, 
                 options: { responsive: true, maintainAspectRatio: false }
             });
-
             const loc = data.reduce((acc, cur) => { acc[cur.location] = (acc[cur.location] || 0) + 1; return acc; }, {});
             new Chart(document.getElementById('locChart'), { 
                 type: 'bar', data: { labels: Object.keys(loc), datasets: [{ label: 'Patients', data: Object.values(loc), backgroundColor: '#6366f1', borderRadius: 8 }]}, 
                 options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
             });
-
             new Chart(document.getElementById('sentimentChart'), { 
                 type: 'doughnut', data: { labels: ['Positive', 'Critical'], datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'] }]}, 
                 options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }
             });
         }
 
-        function renderExternalCharts(data) {
+        function renderExternalCharts(data, yes, no) {
             const colors = ['#e11d48', '#fb7185', '#fda4af', '#9f1239', '#f43f5e'];
             new Chart(document.getElementById('extDemoChart'), { 
                 type: 'bar', data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [
@@ -349,11 +349,20 @@
                     { label: 'FEMALE', data: calculateAgeDist(data, 'Female'), backgroundColor: '#fb7185' }
                 ]}, options: { responsive: true, maintainAspectRatio: false }
             });
-
             const occ = data.reduce((acc, cur) => { acc[cur.occupation] = (acc[cur.occupation] || 0) + 1; return acc; }, {});
             new Chart(document.getElementById('extOccChart'), { 
                 type: 'pie', data: { labels: Object.keys(occ), datasets: [{ data: Object.values(occ), backgroundColor: colors }]}, 
                 options: { responsive: true, maintainAspectRatio: false }
+            });
+            // Re-added external location and balance charts
+            const loc = data.reduce((acc, cur) => { acc[cur.location] = (acc[cur.location] || 0) + 1; return acc; }, {});
+            new Chart(document.getElementById('extLocChart'), { 
+                type: 'bar', data: { labels: Object.keys(loc), datasets: [{ label: 'Respondents', data: Object.values(loc), backgroundColor: '#e11d48', borderRadius: 8 }]}, 
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+            });
+            new Chart(document.getElementById('extBalanceChart'), { 
+                type: 'doughnut', data: { labels: ['Recent Visitor', 'Non-Visitor'], datasets: [{ data: [yes, no], backgroundColor: ['#e11d48', '#cbd5e1'] }]}, 
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }
             });
         }
 
@@ -365,12 +374,10 @@
             const placedRects = [];
             const hubSize = 180;
             const canvasW = canvas.offsetWidth, canvasH = canvas.offsetHeight;
-
             items.forEach((item, i) => {
                 const span = document.createElement('span');
                 span.className = 'feedback-item';
                 span.innerText = item[textKey];
-                
                 if(statusKey === 'experience_rating') {
                     span.style.color = item[statusKey] === 'Positive' ? '#10b981' : '#f43f5e';
                     span.style.background = item[statusKey] === 'Positive' ? '#f0fdf4' : '#fef2f2';
@@ -378,12 +385,10 @@
                     span.style.color = item[statusKey] ? '#e11d48' : '#64748b';
                     span.style.background = item[statusKey] ? '#fff1f2' : '#f8fafc';
                 }
-
                 span.style.fontSize = (10 + (i % 4) * 2) + 'px';
                 wrapper.appendChild(span);
                 const rect = { w: span.offsetWidth + 20, h: span.offsetHeight + 20 };
                 let placed = false, attempts = 0;
-
                 while (!placed && attempts < 150) {
                     const x = Math.random() * (canvasW - rect.w);
                     const y = Math.random() * (canvasH - rect.h);
