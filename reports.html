@@ -208,17 +208,6 @@
                 </div>
             </div>
 
-            <div class="space-y-6">
-                <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em]">External Market Voice</h4>
-                <div class="feedback-canvas border-rose-100" id="canvas-external">
-                    <div class="center-hub">
-                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-300 italic">PHMC</p>
-                        <h2 class="text-xl font-black uppercase italic text-rose-600 leading-none">Market<br>Pulse</h2>
-                    </div>
-                    <div id="wrapper-external" class="w-full h-full relative"></div>
-                </div>
-            </div>
-
             <div class="bg-white shadow-xl rounded-[2.5rem] overflow-hidden border border-slate-100 p-8">
                 <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-6">Market Feedback Comparison (Yes vs No)</h4>
                 <div class="overflow-x-auto">
@@ -288,7 +277,6 @@
             document.getElementById('extYesCount').innerText = yesList.length;
             document.getElementById('extNoCount').innerText = noList.length;
             renderExternalCharts(data, yesList.length, noList.length);
-            renderNoOverlapFeedback(data, 'wrapper-external', 'canvas-external', 'service_details', 'has_availed_recently');
             populateComparisonTable('extFeedbackTableBody', yesList, noList, 'service_details', 'services');
         }
 
@@ -354,7 +342,6 @@
                 type: 'pie', data: { labels: Object.keys(occ), datasets: [{ data: Object.values(occ), backgroundColor: colors }]}, 
                 options: { responsive: true, maintainAspectRatio: false }
             });
-            // Re-added external location and balance charts
             const loc = data.reduce((acc, cur) => { acc[cur.location] = (acc[cur.location] || 0) + 1; return acc; }, {});
             new Chart(document.getElementById('extLocChart'), { 
                 type: 'bar', data: { labels: Object.keys(loc), datasets: [{ label: 'Respondents', data: Object.values(loc), backgroundColor: '#e11d48', borderRadius: 8 }]}, 
@@ -369,6 +356,7 @@
         function renderNoOverlapFeedback(data, wrapperId, canvasId, textKey, statusKey) {
             const wrapper = document.getElementById(wrapperId);
             const canvas = document.getElementById(canvasId);
+            if(!wrapper || !canvas) return;
             wrapper.innerHTML = ""; 
             const items = data.filter(d => d[textKey] && d[textKey].toLowerCase() !== 'none').slice(0, 30);
             const placedRects = [];
