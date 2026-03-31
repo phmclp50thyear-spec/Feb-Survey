@@ -151,6 +151,24 @@
                     <div id="wrapper-internal" class="w-full h-full relative"></div>
                 </div>
             </div>
+
+            <div class="bg-white shadow-xl rounded-[2.5rem] overflow-hidden border border-slate-100 p-8">
+                <h4 class="text-xs font-black text-indigo-400 uppercase tracking-[0.4em] mb-6">Internal Feedback Comparison (Positive vs Critical)</h4>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="text-[10px] font-black uppercase border-b border-slate-100">
+                                <th class="pb-4 px-2 text-emerald-600 bg-emerald-50/50">Positive: Details</th>
+                                <th class="pb-4 px-2 text-emerald-600 bg-emerald-50/50 border-r-2 border-slate-200">Positive: Improvements</th>
+                                <th class="pb-4 px-2 text-rose-600 bg-rose-50/50">Critical: Details</th>
+                                <th class="pb-4 px-2 text-rose-600 bg-rose-50/50">Critical: Improvements</th>
+                            </tr>
+                        </thead>
+                        <tbody id="intFeedbackTableBody" class="text-xs divide-y divide-slate-50">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <div id="section-external" class="tab-content space-y-10">
@@ -180,25 +198,25 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white shadow-xl rounded-[2.5rem] p-8 border border-rose-100">
-                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-8">Market Locations</h4>
-                    <div class="chart-container"><canvas id="extLocChart"></canvas></div>
-                </div>
-                <div class="bg-white shadow-xl rounded-[2.5rem] p-8 border border-rose-100">
-                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-8 text-center">Market Recall (Yes vs No)</h4>
-                    <div class="chart-container"><canvas id="extYesNoChart"></canvas></div>
+            <div class="space-y-6">
+                <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em]">External Market Voice</h4>
+                <div class="feedback-canvas border-rose-100" id="canvas-external">
+                    <div class="center-hub">
+                        <p class="text-[10px] font-black uppercase tracking-widest text-slate-300 italic">PHMC</p>
+                        <h2 class="text-xl font-black uppercase italic text-rose-600 leading-none">Market<br>Pulse</h2>
+                    </div>
+                    <div id="wrapper-external" class="w-full h-full relative"></div>
                 </div>
             </div>
 
             <div class="bg-white shadow-xl rounded-[2.5rem] overflow-hidden border border-slate-100 p-8">
-                <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-6">Market Feedback Comparison</h4>
+                <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-6">Market Feedback Comparison (Yes vs No)</h4>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead>
                             <tr class="text-[10px] font-black uppercase border-b border-slate-100">
                                 <th class="pb-4 px-2 text-emerald-600 bg-emerald-50/50">Yes: Service Details</th>
-                                <th class="pb-4 px-2 text-emerald-600 bg-emerald-50/50">Yes: Services</th>
+                                <th class="pb-4 px-2 text-emerald-600 bg-emerald-50/50 border-r-2 border-slate-200">Yes: Services</th>
                                 <th class="pb-4 px-2 text-rose-600 bg-rose-50/50">No: Service Details</th>
                                 <th class="pb-4 px-2 text-rose-600 bg-rose-50/50">No: Services</th>
                             </tr>
@@ -241,14 +259,18 @@
         async function fetchInternal() {
             const { data } = await supabaseClient.from('survey_submissions').select('*');
             if (!data) return;
-            const pos = data.filter(s => s.experience_rating === 'Positive').length;
-            const repeat = data.filter(s => s.patient_type === 'Repeat').length;
+            
+            const posList = data.filter(s => s.experience_rating === 'Positive');
+            const critList = data.filter(s => s.experience_rating !== 'Positive');
+            
             document.getElementById('totalCount').innerText = data.length;
-            document.getElementById('posRate').innerText = data.length > 0 ? Math.round((pos/data.length)*100) + '%' : '0%';
-            document.getElementById('repeatCount').innerText = repeat;
-            document.getElementById('newCount').innerText = data.length - repeat;
-            renderInternalCharts(data, pos);
+            document.getElementById('posRate').innerText = data.length > 0 ? Math.round((posList.length/data.length)*100) + '%' : '0%';
+            document.getElementById('repeatCount').innerText = data.filter(s => s.patient_type === 'Repeat').length;
+            document.getElementById('newCount').innerText = data.length - data.filter(s => s.patient_type === 'Repeat').length;
+            
+            renderInternalCharts(data, posList.length);
             renderNoOverlapFeedback(data, 'wrapper-internal', 'canvas-internal', 'feedback_details', 'experience_rating');
+            populateComparisonTable('intFeedbackTableBody', posList, critList, 'feedback_details', 'improvements');
         }
 
         async function fetchExternal() {
@@ -262,7 +284,25 @@
             document.getElementById('extNoCount').innerText = noList.length;
 
             renderExternalCharts(data);
-            populateExternalTable(yesList, noList);
+            renderNoOverlapFeedback(data, 'wrapper-external', 'canvas-external', 'service_details', 'has_availed_recently');
+            populateComparisonTable('extFeedbackTableBody', yesList, noList, 'service_details', 'services');
+        }
+
+        function populateComparisonTable(tableId, posList, negList, col1, col2) {
+            const tbody = document.getElementById(tableId);
+            tbody.innerHTML = '';
+            const maxLen = Math.max(posList.length, negList.length);
+            
+            for (let i = 0; i < maxLen; i++) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-3 px-2 italic text-slate-600">${posList[i]?.[col1] || '-'}</td>
+                    <td class="py-3 px-2 font-bold text-emerald-600 border-r-2 border-slate-200">${posList[i]?.[col2] || '-'}</td>
+                    <td class="py-3 px-2 italic text-slate-600 bg-slate-50/50">${negList[i]?.[col1] || '-'}</td>
+                    <td class="py-3 px-2 font-bold text-rose-500 bg-slate-50/50">${negList[i]?.[col2] || '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            }
         }
 
         const calculateAgeDist = (data, gender) => {
@@ -282,11 +322,23 @@
                     { label: 'FEMALE', data: calculateAgeDist(data, 'Female'), backgroundColor: '#0ea5e9' }
                 ]}, options: { responsive: true, maintainAspectRatio: false }
             });
+
             const occ = data.reduce((acc, cur) => { acc[cur.occupation] = (acc[cur.occupation] || 0) + 1; return acc; }, {});
-            new Chart(document.getElementById('occChart'), { type: 'pie', data: { labels: Object.keys(occ), datasets: [{ data: Object.values(occ), backgroundColor: colors }]}, options: { responsive: true, maintainAspectRatio: false }});
+            new Chart(document.getElementById('occChart'), { 
+                type: 'pie', data: { labels: Object.keys(occ), datasets: [{ data: Object.values(occ), backgroundColor: colors }]}, 
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+
             const loc = data.reduce((acc, cur) => { acc[cur.location] = (acc[cur.location] || 0) + 1; return acc; }, {});
-            new Chart(document.getElementById('locChart'), { type: 'bar', data: { labels: Object.keys(loc), datasets: [{ label: 'Patients', data: Object.values(loc), backgroundColor: '#6366f1', borderRadius: 8 }]}, options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }});
-            new Chart(document.getElementById('sentimentChart'), { type: 'doughnut', data: { labels: ['Positive', 'Critical'], datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'] }]}, options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }});
+            new Chart(document.getElementById('locChart'), { 
+                type: 'bar', data: { labels: Object.keys(loc), datasets: [{ label: 'Patients', data: Object.values(loc), backgroundColor: '#6366f1', borderRadius: 8 }]}, 
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+            });
+
+            new Chart(document.getElementById('sentimentChart'), { 
+                type: 'doughnut', data: { labels: ['Positive', 'Critical'], datasets: [{ data: [pos, data.length - pos], backgroundColor: ['#10b981', '#f43f5e'] }]}, 
+                options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }
+            });
         }
 
         function renderExternalCharts(data) {
@@ -297,36 +349,12 @@
                     { label: 'FEMALE', data: calculateAgeDist(data, 'Female'), backgroundColor: '#fb7185' }
                 ]}, options: { responsive: true, maintainAspectRatio: false }
             });
+
             const occ = data.reduce((acc, cur) => { acc[cur.occupation] = (acc[cur.occupation] || 0) + 1; return acc; }, {});
-            new Chart(document.getElementById('extOccChart'), { type: 'pie', data: { labels: Object.keys(occ), datasets: [{ data: Object.values(occ), backgroundColor: colors }]}, options: { responsive: true, maintainAspectRatio: false }});
-            
-            const loc = data.reduce((acc, cur) => { acc[cur.location] = (acc[cur.location] || 0) + 1; return acc; }, {});
-            new Chart(document.getElementById('extLocChart'), { 
-                type: 'bar', data: { labels: Object.keys(loc), datasets: [{ label: 'Market Reach', data: Object.values(loc), backgroundColor: '#e11d48', borderRadius: 8 }]}, 
-                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+            new Chart(document.getElementById('extOccChart'), { 
+                type: 'pie', data: { labels: Object.keys(occ), datasets: [{ data: Object.values(occ), backgroundColor: colors }]}, 
+                options: { responsive: true, maintainAspectRatio: false }
             });
-
-            const yesCount = data.filter(s => s.has_availed_recently).length;
-            new Chart(document.getElementById('extYesNoChart'), { 
-                type: 'doughnut', data: { labels: ['Yes', 'No'], datasets: [{ data: [yesCount, data.length - yesCount], backgroundColor: ['#10b981', '#cbd5e1'] }]}, 
-                options: { responsive: true, maintainAspectRatio: false, cutout: '75%' }
-            });
-        }
-
-        function populateExternalTable(yesList, noList) {
-            const tbody = document.getElementById('extFeedbackTableBody');
-            tbody.innerHTML = '';
-            const maxLen = Math.max(yesList.length, noList.length);
-            for (let i = 0; i < maxLen; i++) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="py-3 px-2 italic font-semibold text-slate-700">${yesList[i]?.service_details || '-'}</td>
-                    <td class="py-3 px-2 font-black uppercase text-emerald-600">${yesList[i]?.services || '-'}</td>
-                    <td class="py-3 px-2 italic font-semibold text-slate-700 bg-slate-50/30">${noList[i]?.service_details || '-'}</td>
-                    <td class="py-3 px-2 font-black uppercase text-rose-500 bg-slate-50/30">${noList[i]?.services || '-'}</td>
-                `;
-                tbody.appendChild(tr);
-            }
         }
 
         function renderNoOverlapFeedback(data, wrapperId, canvasId, textKey, statusKey) {
@@ -342,16 +370,23 @@
                 const span = document.createElement('span');
                 span.className = 'feedback-item';
                 span.innerText = item[textKey];
+                
                 if(statusKey === 'experience_rating') {
                     span.style.color = item[statusKey] === 'Positive' ? '#10b981' : '#f43f5e';
                     span.style.background = item[statusKey] === 'Positive' ? '#f0fdf4' : '#fef2f2';
+                } else {
+                    span.style.color = item[statusKey] ? '#e11d48' : '#64748b';
+                    span.style.background = item[statusKey] ? '#fff1f2' : '#f8fafc';
                 }
+
                 span.style.fontSize = (10 + (i % 4) * 2) + 'px';
                 wrapper.appendChild(span);
                 const rect = { w: span.offsetWidth + 20, h: span.offsetHeight + 20 };
                 let placed = false, attempts = 0;
+
                 while (!placed && attempts < 150) {
-                    const x = Math.random() * (canvasW - rect.w), y = Math.random() * (canvasH - rect.h);
+                    const x = Math.random() * (canvasW - rect.w);
+                    const y = Math.random() * (canvasH - rect.h);
                     const distToCenter = Math.sqrt(Math.pow((x + rect.w/2) - canvasW/2, 2) + Math.pow((y + rect.h/2) - canvasH/2, 2));
                     if (distToCenter > hubSize/2 + 10) {
                         const overlap = placedRects.some(r => (x < r.x + r.w && x + rect.w > r.x && y < r.y + r.h && y + rect.h > r.y));
