@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PHMC | Advanced Analytics</title>
+    <title>PHMC | Advanced Analytics (Public)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -84,7 +84,7 @@
             </div>
             <div class="flex items-center gap-4">
                 <span id="userDisplay" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">...</span>
-                <button onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="bg-slate-100 text-[10px] font-black px-4 py-2 rounded-full hover:bg-red-50 hover:text-red-600 transition uppercase tracking-widest">Logout</button>
+                <button id="logoutBtn" onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="hidden bg-slate-100 text-[10px] font-black px-4 py-2 rounded-full hover:bg-red-50 hover:text-red-600 transition uppercase tracking-widest">Logout</button>
             </div>
         </div>
     </nav>
@@ -153,7 +153,7 @@
             </div>
 
             <div class="bg-white shadow-xl rounded-[2.5rem] overflow-hidden border border-slate-100 p-8">
-                <h4 class="text-xs font-black text-indigo-400 uppercase tracking-[0.4em] mb-6">Internal Feedback Comparison (Positive vs Critical)</h4>
+                <h4 class="text-xs font-black text-indigo-400 uppercase tracking-[0.4em] mb-6">Internal Feedback Comparison</h4>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead>
@@ -203,13 +203,13 @@
                     <div class="chart-container"><canvas id="extLocChart"></canvas></div>
                 </div>
                 <div class="bg-white shadow-xl rounded-[2.5rem] p-8 border border-rose-100">
-                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-8 text-center">Market Balance (Recent Visit)</h4>
+                    <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-8 text-center">Market Balance</h4>
                     <div class="chart-container"><canvas id="extBalanceChart"></canvas></div>
                 </div>
             </div>
 
             <div class="bg-white shadow-xl rounded-[2.5rem] overflow-hidden border border-slate-100 p-8">
-                <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-6">Market Feedback Comparison (Yes vs No)</h4>
+                <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-6">Market Feedback Comparison</h4>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left">
                         <thead>
@@ -229,14 +229,22 @@
     </main>
 
     <script>
+        // REPLACE WITH YOUR ACTUAL PROJECT CREDENTIALS
         const SB_URL = 'https://osfwbhcqibhtobaoojrv.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZndiaGNxaWJodG9iYW9vanJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDU3MzksImV4cCI6MjA4NTY4MTczOX0.2NNaOhHfXMsYVWrBkJ1gudU4l0in35WU4bT4UgzkvlA';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
         
         window.onload = async () => {
             const { data: { user } } = await supabaseClient.auth.getUser();
-            if (!user) { window.location.href = 'index.html'; return; }
-            document.getElementById('userDisplay').innerText = user.email;
+            
+            if (user) {
+                document.getElementById('userDisplay').innerText = user.email;
+                document.getElementById('logoutBtn').classList.remove('hidden');
+            } else {
+                document.getElementById('userDisplay').innerText = "GUEST VIEW";
+                document.getElementById('logoutBtn').classList.add('hidden');
+            }
+
             fetchInternal();
             fetchExternal();
         };
