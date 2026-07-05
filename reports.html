@@ -83,7 +83,10 @@
                 </div>
             </div>
             <div class="flex items-center gap-4">
-                <span id="userDisplay" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">...</span>
+                <div class="text-right mr-2">
+                    <span id="userDisplay" class="text-[10px] font-black text-slate-500 block uppercase tracking-widest">...</span>
+                    <span class="text-[8px] font-bold text-indigo-600 block bg-indigo-50 px-2 py-0.5 rounded-md mt-0.5 uppercase">June - July 2026 Batch</span>
+                </div>
                 <button id="logoutBtn" onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="hidden bg-slate-100 text-[10px] font-black px-4 py-2 rounded-full hover:bg-red-50 hover:text-red-600 transition uppercase tracking-widest">Logout</button>
             </div>
         </div>
@@ -229,11 +232,14 @@
     </main>
 
     <script>
-        // REPLACE WITH YOUR ACTUAL PROJECT CREDENTIALS
         const SB_URL = 'https://osfwbhcqibhtobaoojrv.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZndiaGNxaWJodG9iYW9vanJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDU3MzksImV4cCI6MjA4NTY4MTczOX0.2NNaOhHfXMsYVWrBkJ1gudU4l0in35WU4bT4UgzkvlA';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
         
+        // Boundaries for June 1, 2026 up to July 31, 2026 end of day
+        const START_DATE = '2026-06-01T00:00:00.000Z';
+        const END_DATE = '2026-07-31T23:59:59.999Z';
+
         window.onload = async () => {
             const { data: { user } } = await supabaseClient.auth.getUser();
             
@@ -263,27 +269,43 @@
         }
 
         async function fetchInternal() {
-            const { data } = await supabaseClient.from('survey_submissions').select('*');
+            // Updated query to filter for June and July entries based on created_at
+            const { data } = await supabaseClient
+                .from('survey_submissions')
+                .select('*')
+                .gte('created_at', START_DATE)
+                .lte('created_at', END_DATE);
+
             if (!data) return;
             const posList = data.filter(s => s.experience_rating === 'Positive');
             const critList = data.filter(s => s.experience_rating !== 'Positive');
+            
             document.getElementById('totalCount').innerText = data.length;
             document.getElementById('posRate').innerText = data.length > 0 ? Math.round((posList.length/data.length)*100) + '%' : '0%';
             document.getElementById('repeatCount').innerText = data.filter(s => s.patient_type === 'Repeat').length;
             document.getElementById('newCount').innerText = data.length - data.filter(s => s.patient_type === 'Repeat').length;
+            
             renderInternalCharts(data, posList.length);
             renderNoOverlapFeedback(data, 'wrapper-internal', 'canvas-internal', 'feedback_details', 'experience_rating');
             populateComparisonTable('intFeedbackTableBody', posList, critList, 'feedback_details', 'improvements');
         }
 
         async function fetchExternal() {
-            const { data } = await supabaseClient.from('external_surveys').select('*');
+            // Also matching date ranges for external entries if tracking date properties exist there
+            const { data } = await supabaseClient
+                .from('external_surveys')
+                .select('*')
+                .gte('created_at', START_DATE)
+                .lte('created_at', END_DATE);
+
             if (!data) return;
             const yesList = data.filter(s => s.has_availed_recently);
             const noList = data.filter(s => !s.has_availed_recently);
+            
             document.getElementById('extTotalCount').innerText = data.length;
             document.getElementById('extYesCount').innerText = yesList.length;
             document.getElementById('extNoCount').innerText = noList.length;
+            
             renderExternalCharts(data, yesList.length, noList.length);
             populateComparisonTable('extFeedbackTableBody', yesList, noList, 'service_details', 'services');
         }
@@ -315,6 +337,13 @@
 
         function renderInternalCharts(data, pos) {
             const colors = ['#6366f1', '#2dd4bf', '#0ea5e9', '#8b5cf6', '#10b981'];
+            
+            // Clean up charts before drawing new ones
+            Chart.getChart('demoChart')?.destroy();
+            Chart.getChart('occChart')?.destroy();
+            Chart.getChart('locChart')?.destroy();
+            Chart.getChart('sentimentChart')?.destroy();
+
             new Chart(document.getElementById('demoChart'), { 
                 type: 'bar', data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [
                     { label: 'MALE', data: calculateAgeDist(data, 'Male'), backgroundColor: '#2dd4bf' }, 
@@ -339,6 +368,13 @@
 
         function renderExternalCharts(data, yes, no) {
             const colors = ['#e11d48', '#fb7185', '#fda4af', '#9f1239', '#f43f5e'];
+            
+            // Clean up charts before drawing new ones
+            Chart.getChart('extDemoChart')?.destroy();
+            Chart.getChart('extOccChart')?.destroy();
+            Chart.getChart('extLocChart')?.destroy();
+            Chart.getChart('extBalanceChart')?.destroy();
+
             new Chart(document.getElementById('extDemoChart'), { 
                 type: 'bar', data: { labels: ['0-19', '20-39', '40-59', '60-79', '80+'], datasets: [
                     { label: 'MALE', data: calculateAgeDist(data, 'Male'), backgroundColor: '#e11d48' }, 
