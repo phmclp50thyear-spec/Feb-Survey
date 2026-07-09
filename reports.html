@@ -14,7 +14,7 @@
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -124,11 +124,13 @@
 
         <!-- ==================== INTERNAL DATA VIEW ==================== -->
         <div id="section-internal" class="tab-content active space-y-6">
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
-                 <div id="intDemoChartQ1" class="w-full h-[240px]"></div>
-            </div>
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
-                 <div id="intDemoChartQ2" class="w-full h-[240px]"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
+                     <div id="intDemoChartQ1" class="w-full h-[240px]"></div>
+                </div>
+                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
+                     <div id="intDemoChartQ2" class="w-full h-[240px]"></div>
+                </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intLocChart"></div>
@@ -138,11 +140,13 @@
 
         <!-- ==================== EXTERNAL MARKET VIEW ==================== -->
         <div id="section-external" class="tab-content space-y-6">
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
-                 <div id="extDemoChartQ1" class="w-full h-[240px]"></div>
-            </div>
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
-                 <div id="extDemoChartQ2" class="w-full h-[240px]"></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
+                     <div id="extDemoChartQ1" class="w-full h-[240px]"></div>
+                </div>
+                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
+                     <div id="extDemoChartQ2" class="w-full h-[240px]"></div>
+                </div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extLocChart"></div>
