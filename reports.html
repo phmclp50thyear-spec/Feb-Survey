@@ -13,7 +13,6 @@
             theme: {
                 extend: {
                     fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    boxShadow: { 'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.37)' }
                 }
             }
         }
@@ -25,10 +24,6 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .highcharts-container { border-radius: 1.5rem !important; overflow: hidden; }
-        @media print {
-            nav, .no-print, button { display: none !important; }
-            .tab-content { display: block !important; page-break-after: always; }
-        }
     </style>
 </head>
 <body class="bg-[#0f172a] font-sans text-slate-100 min-h-screen">
@@ -54,158 +49,92 @@
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto p-6 md:p-8 space-y-10">
+    <main class="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
         
-        <!-- DASHBOARD CONTROL MODIFIERS -->
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4 no-print">
-            <div class="bg-[#1e293b] p-1.5 rounded-2xl flex gap-1 shadow-inner border border-slate-800">
+        <!-- DASHBOARD CONTROL MODIFIERS + RECTANGLE SCORECARD CONTAINER -->
+        <div class="flex flex-col md:flex-row justify-between items-stretch gap-6">
+            <div class="bg-[#1e293b] p-2 rounded-2xl flex items-center gap-1 border border-slate-800 self-start">
                 <button onclick="switchDashboard('internal')" id="btn-internal" class="px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-indigo-600 shadow-md text-white">Internal Data</button>
                 <button onclick="switchDashboard('external')" id="btn-external" class="px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200">External Market</button>
             </div>
-            <button onclick="window.print()" class="bg-slate-800 border border-slate-700 text-slate-200 px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:bg-slate-700 transition">Print Comparison Analysis</button>
+            
+            <!-- REPLACEMENT GEOMETRIC TOTALS MATRIX CARD -->
+            <div class="bg-[#1e293b] border border-slate-800 rounded-2xl p-4 flex-1 flex flex-col sm:flex-row justify-between items-center gap-4 px-8 shadow-2xl">
+                <div class="flex flex-col">
+                    <span class="text-[9px] font-black tracking-widest text-slate-400 uppercase">Total Submissions Matrix</span>
+                    <div class="flex items-baseline gap-2">
+                        <span id="txt-total-pool" class="text-3xl font-black text-white italic">--</span>
+                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Responses Pool</span>
+                    </div>
+                </div>
+                <div class="flex gap-4 w-full sm:w-auto">
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-2 px-4 text-center min-w-[100px] flex-1 sm:flex-initial">
+                        <span class="text-[9px] font-black text-indigo-400 block tracking-widest uppercase">Q1 March</span>
+                        <span id="txt-q1-count" class="text-xl font-black text-white">--</span>
+                    </div>
+                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-2 px-4 text-center min-w-[100px] flex-1 sm:flex-initial">
+                        <span id="lbl-q2-title" class="text-[9px] font-black text-teal-400 block tracking-widest uppercase">Q2 June/July</span>
+                        <span id="txt-q2-count" class="text-xl font-black text-white">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TRI-ANIMATED SATURATION MATRIX SECTION -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- OVERALL TRACK -->
+            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl relative min-h-[320px]">
+                <div id="satChartOverall" class="w-full h-full"></div>
+                <div class="absolute bottom-4 right-4 bg-slate-950/80 backdrop-blur-sm border border-slate-800/80 rounded-xl p-2 px-3 shadow-md z-10">
+                    <table class="text-[11px] font-medium border-collapse space-y-1">
+                        <tr class="text-emerald-400"><td class="pr-2 text-base">😊</td><td class="font-bold">Sat:</td><td id="tbl-ov-sat" class="text-right pl-3 font-mono">--</td></tr>
+                        <tr class="text-rose-400"><td class="pr-2 text-base">😡</td><td class="font-bold">Unsat:</td><td id="tbl-ov-unsat" class="text-right pl-3 font-mono">--</td></tr>
+                    </table>
+                </div>
+            </div>
+            <!-- Q1 TRACK -->
+            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl relative min-h-[320px]">
+                <div id="satChartQ1" class="w-full h-full"></div>
+                <div class="absolute bottom-4 right-4 bg-slate-950/80 backdrop-blur-sm border border-slate-800/80 rounded-xl p-2 px-3 shadow-md z-10">
+                    <table class="text-[11px] font-medium border-collapse">
+                        <tr class="text-indigo-400"><td class="pr-2 text-base">😊</td><td class="font-bold">Sat:</td><td id="tbl-q1-sat" class="text-right pl-3 font-mono">--</td></tr>
+                        <tr class="text-slate-400"><td class="pr-2 text-base">😡</td><td class="font-bold">Unsat:</td><td id="tbl-q1-unsat" class="text-right pl-3 font-mono">--</td></tr>
+                    </table>
+                </div>
+            </div>
+            <!-- Q2 TRACK -->
+            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl relative min-h-[320px]">
+                <div id="satChartQ2" class="w-full h-full"></div>
+                <div class="absolute bottom-4 right-4 bg-slate-950/80 backdrop-blur-sm border border-slate-800/80 rounded-xl p-2 px-3 shadow-md z-10">
+                    <table class="text-[11px] font-medium border-collapse">
+                        <tr class="text-teal-400"><td class="pr-2 text-base">😊</td><td class="font-bold">Sat:</td><td id="tbl-q2-sat" class="text-right pl-3 font-mono">--</td></tr>
+                        <tr class="text-rose-400"><td class="pr-2 text-base">😡</td><td class="font-bold">Unsat:</td><td id="tbl-q2-unsat" class="text-right pl-3 font-mono">--</td></tr>
+                    </table>
+                </div>
+            </div>
         </div>
 
         <!-- ==================== INTERNAL DATA VIEW ==================== -->
-        <div id="section-internal" class="tab-content active space-y-10">
-            
-            <!-- SUMMARY KINETIC TILES -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Matrix Submissions</p>
-                        <h3 id="totalCount" class="text-3xl font-black italic text-white">--</h3>
-                    </div>
-                    <div class="text-right text-xs bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                        <span class="block text-indigo-400 font-bold">Q1: <span id="q1_int_tot">0</span></span>
-                        <span class="block text-teal-400 font-bold">Q2: <span id="q2_int_tot">0</span></span>
-                    </div>
-                </div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Net Satisfaction Delta</p>
-                        <h3 id="posRate" class="text-3xl font-black italic text-emerald-400">--</h3>
-                    </div>
-                    <div class="text-right text-xs bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                        <span class="block text-indigo-400 font-bold">Q1: <span id="q1_int_sat">0%</span></span>
-                        <span class="block text-teal-400 font-bold">Q2: <span id="q2_int_sat">0%</span></span>
-                    </div>
-                </div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Repeat Patient Mix</p>
-                        <h3 id="repeatCount" class="text-3xl font-black italic text-indigo-400">--</h3>
-                    </div>
-                    <div class="text-right text-xs bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                        <span class="block text-indigo-400 font-bold">Q1: <span id="q1_int_rep">0</span></span>
-                        <span class="block text-teal-400 font-bold">Q2: <span id="q2_int_rep">0</span></span>
-                    </div>
-                </div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Acquisition Velocity</p>
-                        <h3 id="newCount" class="text-3xl font-black italic text-fuchsia-400">--</h3>
-                    </div>
-                    <div class="text-right text-xs bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                        <span class="block text-indigo-400 font-bold">Q1: <span id="q1_int_new">0</span></span>
-                        <span class="block text-teal-400 font-bold">Q2: <span id="q2_int_new">0</span></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- CHART CONTAINERS -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div id="section-internal" class="tab-content active space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intDemoChart"></div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intOccChart"></div>
             </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intLocChart"></div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intSentimentChart"></div>
-            </div>
-
-            <!-- COMPARATIVE RAW SUBMISSION LEDGER -->
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl overflow-hidden border border-slate-800 p-8">
-                <h4 class="text-xs font-black text-indigo-400 uppercase tracking-[0.4em] mb-6">Cross-Quarter Patient Voice Comparison</h4>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="text-[10px] font-black uppercase border-b border-slate-800 bg-slate-900 text-slate-400">
-                                <th class="py-4 px-4 text-indigo-400">Q1 Patient Feedback (March 2026)</th>
-                                <th class="py-4 px-4 text-indigo-400 border-r border-slate-800">Q1 Action Targets</th>
-                                <th class="py-4 px-4 text-teal-400">Q2 Patient Feedback (June - July 2026)</th>
-                                <th class="py-4 px-4 text-teal-400">Q2 Action Targets</th>
-                            </tr>
-                        </thead>
-                        <tbody id="intFeedbackTableBody" class="text-xs divide-y divide-slate-800/60 bg-slate-900/20"></tbody>
-                    </table>
-                </div>
             </div>
         </div>
 
         <!-- ==================== EXTERNAL MARKET VIEW ==================== -->
-        <div id="section-external" class="tab-content space-y-10">
-            
-            <!-- SUMMARY KINETIC TILES -->
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Market Reach</p>
-                        <h3 id="extTotalCount" class="text-3xl font-black italic text-white">--</h3>
-                    </div>
-                    <div class="text-right text-xs bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                        <span class="block text-indigo-400 font-bold">Q1: <span id="q1_ext_tot">0</span></span>
-                        <span class="block text-rose-400 font-bold">Q2: <span id="q2_ext_tot">0</span></span>
-                    </div>
-                </div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Visitors</p>
-                        <h3 id="extYesCount" class="text-3xl font-black italic text-rose-400">--</h3>
-                    </div>
-                    <div class="text-right text-xs bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                        <span class="block text-indigo-400 font-bold">Q1: <span id="q1_ext_yes">0</span></span>
-                        <span class="block text-rose-400 font-bold">Q2: <span id="q2_ext_yes">0</span></span>
-                    </div>
-                </div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex justify-between items-center">
-                    <div>
-                        <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Untapped Capture Pool</p>
-                        <h3 id="extNoCount" class="text-3xl font-black italic text-slate-400">--</h3>
-                    </div>
-                    <div class="text-right text-xs bg-slate-900 px-3 py-2 rounded-xl border border-slate-800">
-                        <span class="block text-indigo-400 font-bold">Q1: <span id="q1_ext_no">0</span></span>
-                        <span class="block text-rose-400 font-bold">Q2: <span id="q2_ext_no">0</span></span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- HIGHCHARTS INJECTIONS -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div id="section-external" class="tab-content space-y-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extDemoChart"></div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extOccChart"></div>
             </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extLocChart"></div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extBalanceChart"></div>
-            </div>
-
-            <!-- COMPARATIVE MARKET FEEDBACK LEDGER -->
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl overflow-hidden border border-slate-800 p-8">
-                <h4 class="text-xs font-black text-rose-400 uppercase tracking-[0.4em] mb-6">Cross-Quarter Market Sentiment Review</h4>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="text-[10px] font-black uppercase border-b border-slate-800 bg-slate-900 text-slate-400">
-                                <th class="py-4 px-4 text-indigo-400">Q1 Market Details (March)</th>
-                                <th class="py-4 px-4 text-indigo-400 border-r border-slate-800">Q1 Target Channel</th>
-                                <th class="py-4 px-4 text-rose-400">Q2 Market Details (June-July)</th>
-                                <th class="py-4 px-4 text-rose-400">Q2 Target Channel</th>
-                            </tr>
-                        </thead>
-                        <tbody id="extFeedbackTableBody" class="text-xs divide-y divide-slate-800/60 bg-slate-900/20"></tbody>
-                    </table>
-                </div>
             </div>
         </div>
 
@@ -216,274 +145,229 @@
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZndiaGNxaWJodG9iYW9vanJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDU3MzksImV4cCI6MjA4NTY4MTczOX0.2NNaOhHfXMsYVWrBkJ1gudU4l0in35WU4bT4UgzkvlA';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
         
-        // Exact target windows
-        const Q1_START = '2026-03-01T00:00:00.000Z';
-        const Q1_END   = '2026-03-31T23:59:59.999Z';
-        const Q2_START = '2026-06-01T00:00:00.000Z';
-        const Q2_END   = '2026-07-31T23:59:59.999Z';
+        const Q1_START = '2026-03-01T00:00:00.000Z', Q1_END = '2026-03-31T23:59:59.999Z';
+        const Q2_START = '2026-06-01T00:00:00.000Z', Q2_END = '2026-07-31T23:59:59.999Z';
 
-        // Highcharts Base Options Mixin for Consistent Theming
+        let cachedInternal = { q1: [], q2: [] }, cachedExternal = { q1: [], q2: [] };
+
+        // Custom Custom-Entrance Animation Interpolators
+        const customEntrancePieOptions = {
+            plotOptions: {
+                pie: {
+                    innerSize: '60%',
+                    allowPointSelect: true,
+                    cursor: 'pointer',
+                    dataLabels: {
+                        enabled: true,
+                        format: '{point.percentage:.1f}%',
+                        distance: -25,
+                        style: { color: '#ffffff', fontSize: '11px', fontWeight: '900', textOutline: 'none' }
+                    },
+                    showInLegend: false,
+                    animation: { duration: 1400 }
+                }
+            },
+            series: [{
+                animation: {
+                    defer: 100,
+                    duration: 1200,
+                    complete: function () {
+                        // Soft fall-through logic for secondary animation configurations if needed
+                    }
+                }
+            }]
+        };
+
+        // Custom implementation hook mapping closely to highcharts.com/demo/highcharts/pie-custom-entrance-animation
+        (function (H) {
+            H.seriesTypes.pie.prototype.animate = function (init) {
+                const series = this, chart = series.chart, points = series.points, { animation } = series.options, { center } = series;
+                if (init) {
+                    points.forEach(point => {
+                        point.graphic?.attr({ r: 0, start: center[2] / 2, end: center[2] / 2 });
+                    });
+                } else {
+                    points.forEach(point => {
+                        point.graphic?.animate({
+                            r: point.shapeArgs.r,
+                            start: point.shapeArgs.start,
+                            end: point.shapeArgs.end
+                        }, animation);
+                    });
+                }
+            };
+        }(Highcharts));
+
         const darkThemeBase = {
             chart: { backgroundColor: '#1e293b', style: { fontFamily: 'Inter, sans-serif' } },
-            title: { style: { color: '#94a3b8', fontSize: '11px', fontWeight: '900', letterSpacing: '0.3em' }, align: 'left' },
+            title: { style: { color: '#94a3b8', fontSize: '10px', fontWeight: '900', letterSpacing: '0.25em' }, align: 'left' },
             xAxis: { gridLineColor: '#334155', lineColor: '#334155', tickColor: '#334155', labels: { style: { color: '#94a3b8' } } },
             yAxis: { gridLineColor: '#334155', lineColor: '#334155', title: { text: null }, labels: { style: { color: '#94a3b8' } } },
-            legend: { itemStyle: { color: '#94a3b8', fontSize: '10px', fontWeight: 'bold' }, itemHoverStyle: { color: '#fff' } },
-            credits: { enabled: false },
-            accessibility: { enabled: false }
+            legend: { itemStyle: { color: '#94a3b8', fontSize: '10px' } },
+            credits: { enabled: false }, accessibility: { enabled: false }
         };
 
         window.onload = async () => {
             const { data: { user } } = await supabaseClient.auth.getUser();
-            if (user) {
-                document.getElementById('userDisplay').innerText = user.email;
-                document.getElementById('logoutBtn').classList.remove('hidden');
-            } else {
-                document.getElementById('userDisplay').innerText = "GUEST ANALYST VIEW";
-                document.getElementById('logoutBtn').classList.add('hidden');
-            }
-            orchestrateDashboardPipeline();
+            document.getElementById('userDisplay').innerText = user ? user.email : "GUEST ANALYST VIEW";
+            if (user) document.getElementById('logoutBtn').classList.remove('hidden');
+            
+            await fetchMetricsDataPipeline();
+            switchDashboard('internal'); 
         };
 
-        function switchDashboard(type) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(`section-${type}`).classList.add('active');
-            const btnInt = document.getElementById('btn-internal'), btnExt = document.getElementById('btn-external');
-            if(type === 'internal') {
-                btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-indigo-600 shadow-md text-white";
-                btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200";
-            } else {
-                btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-rose-600 shadow-md text-white";
-                btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200";
-            }
-        }
-
-        async function orchestrateDashboardPipeline() {
-            // Parallel execution across tables and quarters
+        async function fetchMetricsDataPipeline() {
             const [intQ1, intQ2, extQ1, extQ2] = await Promise.all([
                 supabaseClient.from('survey_submissions').select('*').gte('created_at', Q1_START).lte('created_at', Q1_END),
                 supabaseClient.from('survey_submissions').select('*').gte('created_at', Q2_START).lte('created_at', Q2_END),
                 supabaseClient.from('external_surveys').select('*').gte('created_at', Q1_START).lte('created_at', Q1_END),
                 supabaseClient.from('external_surveys').select('*').gte('created_at', Q2_START).lte('created_at', Q2_END)
             ]);
-
-            processInternalSide(intQ1.data || [], intQ2.data || []);
-            processExternalSide(extQ1.data || [], extQ2.data || []);
+            cachedInternal = { q1: intQ1.data || [], q2: intQ2.data || [] };
+            cachedExternal = { q1: extQ1.data || [], q2: extQ2.data || [] };
         }
 
-        function processInternalSide(q1, q2) {
-            const totLen = q1.length + q2.length;
-            document.getElementById('totalCount').innerText = totLen;
+        function switchDashboard(type) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(`section-${type}`).classList.add('active');
             
-            // Sub-metrics configuration
-            const calcSat = (arr) => arr.length ? Math.round((arr.filter(s => s.experience_rating === 'Positive').length / arr.length) * 100) : 0;
-            const q1Sat = calcSat(q1), q2Sat = calcSat(q2);
+            const btnInt = document.getElementById('btn-internal'), btnExt = document.getElementById('btn-external');
+            const lblQ2 = document.getElementById('lbl-q2-title');
             
-            document.getElementById('q1_int_tot').innerText = q1.length;
-            document.getElementById('q2_int_tot').innerText = q2.length;
-            document.getElementById('q1_int_sat').innerText = q1Sat + '%';
-            document.getElementById('q2_int_sat').innerText = q2Sat + '%';
-            
-            const q1Rep = q1.filter(s => s.patient_type === 'Repeat').length;
-            const q2Rep = q2.filter(s => s.patient_type === 'Repeat').length;
-            document.getElementById('q1_int_rep').innerText = q1Rep;
-            document.getElementById('q2_int_rep').innerText = q2Rep;
-            document.getElementById('repeatCount').innerText = q1Rep + q2Rep;
-
-            const q1New = q1.length - q1Rep, q2New = q2.length - q2Rep;
-            document.getElementById('q1_int_new').innerText = q1New;
-            document.getElementById('q2_int_new').innerText = q2New;
-            document.getElementById('newCount').innerText = q1New + q2New;
-
-            // Trend Delta Display logic
-            document.getElementById('posRate').innerText = q2Sat >= q1Sat ? `+${q2Sat - q1Sat}%` : `${q2Sat - q1Sat}%`;
-
-            renderInternalCharts(q1, q2);
-            populateCrossTable('intFeedbackTableBody', q1, q2, 'feedback_details', 'improvements');
-        }
-
-        function processExternalSide(q1, q2) {
-            document.getElementById('extTotalCount').innerText = q1.length + q2.length;
-            
-            document.getElementById('q1_ext_tot').innerText = q1.length;
-            document.getElementById('q2_ext_tot').innerText = q2.length;
-
-            const q1Yes = q1.filter(s => s.has_availed_recently).length;
-            const q2Yes = q2.filter(s => s.has_availed_recently).length;
-            document.getElementById('q1_ext_yes').innerText = q1Yes;
-            document.getElementById('q2_ext_yes').innerText = q2Yes;
-            document.getElementById('extYesCount').innerText = q1Yes + q2Yes;
-
-            const q1No = q1.length - q1Yes, q2No = q2.length - q2Yes;
-            document.getElementById('q1_ext_no').innerText = q1No;
-            document.getElementById('q2_ext_no').innerText = q2No;
-            document.getElementById('extNoCount').innerText = q1No + q2No;
-
-            renderExternalCharts(q1, q2);
-            populateCrossTable('extFeedbackTableBody', q1, q2, 'service_details', 'services');
-        }
-
-        function populateCrossTable(tableId, q1List, q2List, col1, col2) {
-            const tbody = document.getElementById(tableId);
-            tbody.innerHTML = '';
-            const max = Math.max(q1List.length, q2List.length);
-            for(let i=0; i < max; i++) {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="py-3 px-4 italic text-slate-400">${q1List[i]?.[col1] || '-'}</td>
-                    <td class="py-3 px-4 font-bold text-indigo-400 border-r border-slate-800/80">${q1List[i]?.[col2] || '-'}</td>
-                    <td class="py-3 px-4 italic text-slate-300 bg-slate-900/10">${q2List[i]?.[col1] || '-'}</td>
-                    <td class="py-3 px-4 font-bold text-teal-400 bg-slate-900/10">${q2List[i]?.[col2] || '-'}</td>
-                `;
-                tbody.appendChild(tr);
+            if(type === 'internal') {
+                btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-indigo-600 shadow-md text-white";
+                btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200";
+                lblQ2.className = "text-[9px] font-black text-teal-400 block tracking-widest uppercase";
+                renderActiveDataset(cachedInternal.q1, cachedInternal.q2, 'internal');
+            } else {
+                btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-rose-600 shadow-md text-white";
+                btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200";
+                lblQ2.className = "text-[9px] font-black text-rose-400 block tracking-widest uppercase";
+                renderActiveDataset(cachedExternal.q1, cachedExternal.q2, 'external');
             }
+        }
+
+        function renderActiveDataset(q1, q2, mode) {
+            // Update Core Matrix Values
+            document.getElementById('txt-total-pool').innerText = q1.length + q2.length;
+            document.getElementById('txt-q1-count').innerText = q1.length;
+            document.getElementById('txt-q2-count').innerText = q2.length;
+
+            // Generate conditional logic depending on internal flags vs external indicators
+            const isInt = mode === 'internal';
+            const conditionCheck = (item) => isInt ? item.experience_rating === 'Positive' : item.has_availed_recently === true;
+
+            const q1Sat = q1.filter(conditionCheck).length, q1Unsat = q1.length - q1Sat;
+            const q2Sat = q2.filter(conditionCheck).length, q2Unsat = q2.length - q2Sat;
+            const totSat = q1Sat + q2Sat, totUnsat = q1Unsat + q2Unsat;
+
+            // Update Dynamic lower-right Table metrics
+            document.getElementById('tbl-ov-sat').innerText = totSat;
+            document.getElementById('tbl-ov-unsat').innerText = totUnsat;
+            document.getElementById('tbl-q1-sat').innerText = q1Sat;
+            document.getElementById('tbl-q1-unsat').innerText = q1Unsat;
+            document.getElementById('tbl-q2-sat').innerText = q2Sat;
+            document.getElementById('tbl-q2-unsat').innerText = q2Unsat;
+
+            const basePieConf = (title, data) => Highcharts.merge(darkThemeBase, customEntrancePieOptions, {
+                title: { text: title },
+                series: [{ type: 'pie', name: 'Responses', data: data }]
+            });
+
+            const satColor = isInt ? '#6366f1' : '#f43f5e', unsatColor = '#334155';
+
+            Highcharts.chart('satChartOverall', basePieConf('OVERALL SATURATION INDEX', [
+                { name: 'Satisfied', y: totSat, color: satColor }, { name: 'Unsatisfied', y: totUnsat, color: unsatColor }
+            ]));
+            Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH BOUNDARY', [
+                { name: 'Satisfied', y: q1Sat, color: satColor }, { name: 'Unsatisfied', y: q1Unsat, color: unsatColor }
+            ]));
+            Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [
+                { name: 'Satisfied', y: q2Sat, color: satColor }, { name: 'Unsatisfied', y: q2Unsat, color: unsatColor }
+            ]));
+
+            if (isInt) renderInternalStructuralCharts(q1, q2); 
+            else renderExternalStructuralCharts(q1, q2);
         }
 
         const buildAgeDistribution = (arr) => {
             let buckets = { Male: [0,0,0,0,0], Female: [0,0,0,0,0] };
             arr.forEach(item => {
                 let g = item.gender === 'Male' ? 'Male' : 'Female';
-                let age = item.age || 0;
-                let idx = age <= 19 ? 0 : age <= 39 ? 1 : age <= 59 ? 2 : age <= 79 ? 3 : 4;
+                let idx = (item.age || 0) <= 19 ? 0 : (item.age || 0) <= 39 ? 1 : (item.age || 0) <= 59 ? 2 : (item.age || 0) <= 79 ? 3 : 4;
                 buckets[g][idx]++;
             });
             return buckets;
         };
 
-        function renderInternalCharts(q1, q2) {
-            const q1Age = buildAgeDistribution(q1);
-            const q2Age = buildAgeDistribution(q2);
-
-            // 1. Demographics Chart
+        function renderInternalStructuralCharts(q1, q2) {
+            const q1Age = buildAgeDistribution(q1), q2Age = buildAgeDistribution(q2);
             Highcharts.chart('intDemoChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'column' },
-                title: { text: 'DEMOGRAPHICS HISTOGRAM' },
+                chart: { type: 'column' }, title: { text: 'INTERNAL DEMOGRAPHICS' },
                 xAxis: { categories: ['0-19', '20-39', '40-59', '60-79', '80+'] },
                 series: [
-                    { name: 'Q1 Male', data: q1Age.Male, color: '#312e81' },
-                    { name: 'Q1 Female', data: q1Age.Female, color: '#4338ca' },
-                    { name: 'Q2 Male', data: q2Age.Male, color: '#0d9488' },
-                    { name: 'Q2 Female', data: q2Age.Female, color: '#14b8a6' }
+                    { name: 'Q1 Male', data: q1Age.Male, color: '#312e81' }, { name: 'Q1 Female', data: q1Age.Female, color: '#4338ca' },
+                    { name: 'Q2 Male', data: q2Age.Male, color: '#0d9488' }, { name: 'Q2 Female', data: q2Age.Female, color: '#14b8a6' }
                 ]
             }));
 
-            // 2. Occupational Balance Chart
             const processOcc = (arr) => arr.reduce((acc, c) => { acc[c.occupation] = (acc[c.occupation] || 0) + 1; return acc; }, {});
             const q1Occ = processOcc(q1), q2Occ = processOcc(q2);
             const allOccs = Array.from(new Set([...Object.keys(q1Occ), ...Object.keys(q2Occ)]));
-
             Highcharts.chart('intOccChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'bar' },
-                title: { text: 'OCCUPATIONAL SHIFT' },
-                xAxis: { categories: allOccs },
-                series: [
-                    { name: 'Q1 Block', data: allOccs.map(o => q1Occ[o] || 0), color: '#6366f1' },
-                    { name: 'Q2 Block', data: allOccs.map(o => q2Occ[o] || 0), color: '#2dd4bf' }
-                ]
+                chart: { type: 'bar' }, title: { text: 'OCCUPATIONAL VARIANCE' }, xAxis: { categories: allOccs },
+                series: [{ name: 'Q1 Block', data: allOccs.map(o => q1Occ[o] || 0), color: '#6366f1' }, { name: 'Q2 Block', data: allOccs.map(o => q2Occ[o] || 0), color: '#2dd4bf' }]
             }));
 
-            // 3. Patient Locations Chart
             const processLoc = (arr) => arr.reduce((acc, c) => { acc[c.location] = (acc[c.location] || 0) + 1; return acc; }, {});
             const q1Loc = processLoc(q1), q2Loc = processLoc(q2);
             const allLocs = Array.from(new Set([...Object.keys(q1Loc), ...Object.keys(q2Loc)]));
-
             Highcharts.chart('intLocChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'area' },
-                title: { text: 'REGIONAL DENSITY LOGS' },
-                xAxis: { categories: allLocs },
-                series: [
-                    { name: 'Q1 Baseline', data: allLocs.map(l => q1Loc[l] || 0), color: '#4f46e5', fillOpacity: 0.2 },
-                    { name: 'Q2 Volume', data: allLocs.map(l => q2Loc[l] || 0), color: '#06b6d4', fillOpacity: 0.4 }
-                ]
+                chart: { type: 'area' }, title: { text: 'REGIONAL PATIENT TRAFFIC' }, xAxis: { categories: allLocs },
+                series: [{ name: 'Q1 Base', data: allLocs.map(l => q1Loc[l] || 0), color: '#4f46e5', fillOpacity: 0.1 }, { name: 'Q2 Volume', data: allLocs.map(l => q2Loc[l] || 0), color: '#06b6d4', fillOpacity: 0.3 }]
             }));
 
-            // 4. Sentiment Balance Doughnut
-            const getSentimentSeries = (arr) => {
-                let pos = arr.filter(s => s.experience_rating === 'Positive').length;
-                return [pos, arr.length - pos];
-            };
+            const getSentimentSeries = (arr) => [arr.filter(s => s.experience_rating === 'Positive').length, arr.filter(s => s.experience_rating !== 'Positive').length];
             const q1Sent = getSentimentSeries(q1), q2Sent = getSentimentSeries(q2);
-
             Highcharts.chart('intSentimentChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'pie' },
-                title: { text: 'SENTIMENT RATIO (Q1 INSIDE / Q2 OUTSIDE)' },
-                plotOptions: { pie: { innerSize: '65%', dataLabels: { enabled: false }, showInLegend: true } },
-                series: [{
-                    name: 'Volume',
-                    data: [
-                        { name: 'Q1 Positive', y: q1Sent[0], color: '#312e81' },
-                        { name: 'Q1 Critical', y: q1Sent[1], color: '#4c1d95' },
-                        { name: 'Q2 Positive', y: q2Sent[0], color: '#10b981' },
-                        { name: 'Q2 Critical', y: q2Sent[1], color: '#f43f5e' }
-                    ]
-                }]
+                chart: { type: 'pie' }, title: { text: 'CROSS-QUARTER VOLUME SPREAD' },
+                plotOptions: { pie: { innerSize: '60%', dataLabels: { enabled: false }, showInLegend: true } },
+                series: [{ name: 'Total Volume', data: [{ name: 'Q1 Pos', y: q1Sent[0], color: '#312e81' }, { name: 'Q1 Crit', y: q1Sent[1], color: '#4c1d95' }, { name: 'Q2 Pos', y: q2Sent[0], color: '#10b981' }, { name: 'Q2 Crit', y: q2Sent[1], color: '#f43f5e' }] }]
             }));
         }
 
-        function renderExternalCharts(q1, q2) {
-            const q1Age = buildAgeDistribution(q1);
-            const q2Age = buildAgeDistribution(q2);
-
-            // 1. Market Demographics
+        function renderExternalStructuralCharts(q1, q2) {
+            const q1Age = buildAgeDistribution(q1), q2Age = buildAgeDistribution(q2);
             Highcharts.chart('extDemoChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'column' },
-                title: { text: 'MARKET DEMOGRAPHICS TARGETS' },
+                chart: { type: 'column' }, title: { text: 'MARKET DENSITY COMPASS' },
                 xAxis: { categories: ['0-19', '20-39', '40-59', '60-79', '80+'] },
                 series: [
-                    { name: 'Q1 Male', data: q1Age.Male, color: '#4c0519' },
-                    { name: 'Q1 Female', data: q1Age.Female, color: '#9f1239' },
-                    { name: 'Q2 Male', data: q2Age.Male, color: '#f43f5e' },
-                    { name: 'Q2 Female', data: q2Age.Female, color: '#fda4af' }
+                    { name: 'Q1 Male', data: q1Age.Male, color: '#4c0519' }, { name: 'Q1 Female', data: q1Age.Female, color: '#9f1239' },
+                    { name: 'Q2 Male', data: q2Age.Male, color: '#f43f5e' }, { name: 'Q2 Female', data: q2Age.Female, color: '#fda4af' }
                 ]
             }));
 
-            // 2. Market Occupation
             const processOcc = (arr) => arr.reduce((acc, c) => { acc[c.occupation] = (acc[c.occupation] || 0) + 1; return acc; }, {});
             const q1Occ = processOcc(q1), q2Occ = processOcc(q2);
             const allOccs = Array.from(new Set([...Object.keys(q1Occ), ...Object.keys(q2Occ)]));
-
             Highcharts.chart('extOccChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'bar' },
-                title: { text: 'MARKET SEGMENT WORK PATTERNS' },
-                xAxis: { categories: allOccs },
-                series: [
-                    { name: 'Q1 Market', data: allOccs.map(o => q1Occ[o] || 0), color: '#9f1239' },
-                    { name: 'Q2 Market', data: allOccs.map(o => q2Occ[o] || 0), color: '#fb7185' }
-                ]
+                chart: { type: 'bar' }, title: { text: 'MARKET TARGET SEGMENTS' }, xAxis: { categories: allOccs },
+                series: [{ name: 'Q1 Market', data: allOccs.map(o => q1Occ[o] || 0), color: '#9f1239' }, { name: 'Q2 Market', data: allOccs.map(o => q2Occ[o] || 0), color: '#fb7185' }]
             }));
 
-            // 3. Market Locations
             const processLoc = (arr) => arr.reduce((acc, c) => { acc[c.location] = (acc[c.location] || 0) + 1; return acc; }, {});
             const q1Loc = processLoc(q1), q2Loc = processLoc(q2);
             const allLocs = Array.from(new Set([...Object.keys(q1Loc), ...Object.keys(q2Loc)]));
-
             Highcharts.chart('extLocChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'line' },
-                title: { text: 'OUTREACH AREA VARIATION' },
-                xAxis: { categories: allLocs },
-                series: [
-                    { name: 'Q1 Active Zones', data: allLocs.map(l => q1Loc[l] || 0), color: '#be123c', dashStyle: 'Dash' },
-                    { name: 'Q2 Active Zones', data: allLocs.map(l => q2Loc[l] || 0), color: '#e11d48' }
-                ]
+                chart: { type: 'line' }, title: { text: 'OUTREACH TARGET LOCATIONS' }, xAxis: { categories: allLocs },
+                series: [{ name: 'Q1 Active', data: allLocs.map(l => q1Loc[l] || 0), color: '#be123c', dashStyle: 'Dash' }, { name: 'Q2 Active', data: allLocs.map(l => q2Loc[l] || 0), color: '#e11d48' }]
             }));
 
-            // 4. Market Engagement Balance
-            const q1Yes = q1.filter(s => s.has_availed_recently).length;
-            const q2Yes = q2.filter(s => s.has_availed_recently).length;
-
+            const q1Yes = q1.filter(s => s.has_availed_recently).length, q2Yes = q2.filter(s => s.has_availed_recently).length;
             Highcharts.chart('extBalanceChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'pie' },
-                title: { text: 'CONVERSION VELOCITY INDEX' },
+                chart: { type: 'pie' }, title: { text: 'CONVERSION VARIATION RATIOS' },
                 plotOptions: { pie: { innerSize: '70%', dataLabels: { enabled: false }, showInLegend: true } },
-                series: [{
-                    name: 'Respondents',
-                    data: [
-                        { name: 'Q1 Engaged', y: q1Yes, color: '#881337' },
-                        { name: 'Q1 Passive', y: q1.length - q1Yes, color: '#334155' },
-                        { name: 'Q2 Engaged', y: q2Yes, color: '#e11d48' },
-                        { name: 'Q2 Passive', y: q2.length - q2Yes, color: '#475569' }
-                    ]
-                }]
+                series: [{ name: 'Respondents', data: [{ name: 'Q1 Engaged', y: q1Yes, color: '#881337' }, { name: 'Q1 Passive', y: q1.length - q1Yes, color: '#334155' }, { name: 'Q2 Engaged', y: q2Yes, color: '#e11d48' }, { name: 'Q2 Passive', y: q2.length - q2Yes, color: '#475569' }] }]
             }));
         }
     </script>
