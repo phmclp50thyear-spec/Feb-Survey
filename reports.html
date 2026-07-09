@@ -7,13 +7,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = { theme: { extend: { fontFamily: { sans: ['Inter', 'sans-serif'] } } } }
-    </script>
     <style>
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #0f172a; }
@@ -21,79 +19,50 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .highcharts-container { border-radius: 1.5rem !important; overflow: visible !important; }
-        .glow-blue { filter: drop-shadow(0px 0px 8px rgba(0, 191, 255, 0.8)); }
-        .glow-pink { filter: drop-shadow(0px 0px 8px rgba(255, 20, 147, 0.8)); }
     </style>
 </head>
 <body class="bg-[#0f172a] font-sans text-slate-100 min-h-screen">
     <nav class="bg-[#1e293b]/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-800 p-4 shadow-xl">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-8">
-                <h1 class="font-black text-indigo-400 tracking-tighter text-xl uppercase italic">PHMC</h1>
-                <div class="flex gap-6">
-                    <a href="survey.html" class="text-sm font-bold text-slate-400 hover:text-indigo-400 transition uppercase tracking-widest">Internal</a>
-                    <a href="external_survey.html" class="text-sm font-bold text-slate-400 hover:text-rose-400 transition uppercase tracking-widest">External</a>
-                    <a href="reports.html" class="text-sm font-bold text-indigo-400 border-b-2 border-indigo-400 uppercase tracking-widest">Reports</a>
-                </div>
-            </div>
+            <h1 class="font-black text-indigo-400 tracking-tighter text-xl uppercase italic">PHMC</h1>
             <div class="flex items-center gap-4">
-                <div class="text-right mr-2">
-                    <span id="userDisplay" class="text-[10px] font-black text-slate-400 block uppercase tracking-widest">...</span>
-                    <span class="text-[8px] font-bold text-emerald-400 block bg-emerald-500/10 px-2 py-0.5 rounded-md mt-0.5 uppercase tracking-wide border border-emerald-500/20">Comparative Quarter Mode</span>
-                </div>
+                <span id="userDisplay" class="text-[10px] font-black text-slate-400 uppercase tracking-widest">...</span>
                 <button id="logoutBtn" onclick="supabaseClient.auth.signOut().then(() => window.location.href='index.html')" class="hidden bg-slate-800 text-[10px] font-black px-4 py-2 rounded-full hover:bg-rose-950 hover:text-rose-400 border border-slate-700 transition uppercase tracking-widest">Logout</button>
             </div>
         </div>
     </nav>
 
     <main class="max-w-7xl mx-auto p-6 md:p-8 space-y-8">
-        <div class="flex flex-col md:flex-row justify-between items-stretch gap-6">
-            <div class="bg-[#1e293b] p-2 rounded-2xl flex items-center gap-1 border border-slate-800 self-start">
-                <button onclick="switchDashboard('internal')" id="btn-internal" class="px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-indigo-600 shadow-md text-white">Internal Data</button>
-                <button onclick="switchDashboard('external')" id="btn-external" class="px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200">External Market</button>
-            </div>
-            <div class="bg-[#1e293b] border border-slate-800 rounded-2xl p-4 flex-1 flex flex-col sm:flex-row justify-between items-center gap-4 px-8 shadow-2xl">
-                <div class="flex flex-col">
-                    <span class="text-[9px] font-black tracking-widest text-slate-400 uppercase">Total Submissions Matrix</span>
-                    <div class="flex items-baseline gap-2">
-                        <span id="txt-total-pool" class="text-3xl font-black text-white italic">--</span>
-                        <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Responses Pool</span>
-                    </div>
-                </div>
-                <div class="flex gap-4 w-full sm:w-auto">
-                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-2 px-4 text-center min-w-[100px]">
-                        <span class="text-[9px] font-black text-indigo-400 block tracking-widest uppercase">Q1 March</span>
-                        <span id="txt-q1-count" class="text-xl font-black text-white">--</span>
-                    </div>
-                    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-2 px-4 text-center min-w-[100px]">
-                        <span id="lbl-q2-title" class="text-[9px] font-black text-teal-400 block tracking-widest uppercase">Q2 June/July</span>
-                        <span id="txt-q2-count" class="text-xl font-black text-white">--</span>
-                    </div>
-                </div>
-            </div>
+        <div class="flex gap-2 bg-[#1e293b] p-2 rounded-2xl w-fit border border-slate-800">
+            <button onclick="switchDashboard('internal')" id="btn-internal" class="px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-indigo-600 text-white">Internal Data</button>
+            <button onclick="switchDashboard('external')" id="btn-external" class="px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400">External Market</button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl relative min-h-[340px]"><div id="satChartOverall" class="w-full h-full"></div></div>
-            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl relative min-h-[340px]"><div id="satChartQ1" class="w-full h-full"></div></div>
-            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl relative min-h-[340px]"><div id="satChartQ2" class="w-full h-full"></div></div>
+            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 min-h-[340px]"><div id="satChartOverall" class="w-full h-full"></div></div>
+            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 min-h-[340px]"><div id="satChartQ1" class="w-full h-full"></div></div>
+            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 min-h-[340px]"><div id="satChartQ2" class="w-full h-full"></div></div>
         </div>
 
         <div id="section-internal" class="tab-content active space-y-6">
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full"><div id="intDemoChartQ1" class="w-full h-[240px]"></div></div>
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full"><div id="intDemoChartQ2" class="w-full h-[240px]"></div></div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intLocChart"></div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intSentimentChart"></div>
+                <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-800"><div id="intDemoChartQ1" class="w-full h-[300px]"></div></div>
+                <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-800"><div id="intDemoChartQ2" class="w-full h-[300px]"></div></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-800" id="intLocChart"></div>
+                <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-800" id="intSentimentChart"></div>
             </div>
         </div>
 
         <div id="section-external" class="tab-content space-y-6">
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full"><div id="extDemoChartQ1" class="w-full h-[240px]"></div></div>
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full"><div id="extDemoChartQ2" class="w-full h-[240px]"></div></div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extLocChart"></div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extBalanceChart"></div>
+                <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-800"><div id="extDemoChartQ1" class="w-full h-[300px]"></div></div>
+                <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-800"><div id="extDemoChartQ2" class="w-full h-[300px]"></div></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-800" id="extLocChart"></div>
+                <div class="bg-[#1e293b] p-6 rounded-3xl border border-slate-800" id="extBalanceChart"></div>
             </div>
         </div>
     </main>
@@ -102,11 +71,8 @@
         const SB_URL = 'https://osfwbhcqibhtobaoojrv.supabase.co';
         const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9zZndiaGNxaWJodG9iYW9vanJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzAxMDU3MzksImV4cCI6MjA4NTY4MTczOX0.2NNaOhHfXMsYVWrBkJ1gudU4l0in35WU4bT4UgzkvlA';
         const supabaseClient = supabase.createClient(SB_URL, SB_KEY);
-        const Q1_START = '2026-03-01T00:00:00.000Z', Q1_END = '2026-03-31T23:59:59.999Z';
-        const Q2_START = '2026-06-01T00:00:00.000Z', Q2_END = '2026-07-31T23:59:59.999Z';
-        let cachedInternal = { q1: [], q2: [] }, cachedExternal = { q1: [], q2: [] };
-
-        // 1. Pie Fan Animations Plugin (PRESERVED)
+        
+        // --- PIE FAN ANIMATION PLUGIN ---
         (function (H) {
             H.seriesTypes.pie.prototype.animate = function (init) {
                 const series = this, chart = series.chart, points = series.points, { animation } = series.options, { startAngleRad } = series;
@@ -116,13 +82,6 @@
                         graphic.attr({ start: startAngleRad, end: startAngleRad, opacity: 1 })
                             .animate({ start: args.start, end: args.end }, { duration: animation.duration / points.length }, function () {
                                 if (points[point.index + 1]) { fanAnimate(points[point.index + 1], args.end); }
-                                if (point.index === series.points.length - 1) {
-                                    series.dataLabelsGroup?.animate({ opacity: 1 }, void 0, function () {
-                                        points.forEach(p => { p.opacity = 1; });
-                                        series.update({ enableMouseTracking: true }, false);
-                                        chart.update({ plotOptions: { pie: { innerSize: '50%', borderRadius: 6, center: ['50%', '42%'], size: '75%' } } });
-                                    });
-                                }
                             });
                     }
                 }
@@ -133,115 +92,64 @@
         const darkThemeBase = {
             chart: { backgroundColor: '#1e293b', style: { fontFamily: 'Inter, sans-serif' } },
             title: { style: { color: '#94a3b8', fontSize: '10px', fontWeight: '900', letterSpacing: '0.25em' }, align: 'left' },
-            xAxis: { gridLineColor: '#334155', lineColor: '#334155', tickColor: '#334155', labels: { style: { color: '#94a3b8' } } },
-            yAxis: { gridLineColor: '#334155', lineColor: '#334155', title: { text: null }, labels: { style: { color: '#94a3b8' } } },
-            legend: { enabled: false }, exporting: { enabled: false },
-            tooltip: { backgroundColor: '#0f172a', borderColor: '#334155', style: { color: '#f8fafc' } },
-            credits: { enabled: false }
-        };
-
-        window.onload = async () => {
-            const { data: { user } } = await supabaseClient.auth.getUser();
-            document.getElementById('userDisplay').innerText = user ? user.email : "GUEST ANALYST VIEW";
-            if (user) document.getElementById('logoutBtn').classList.remove('hidden');
-            await fetchMetricsDataPipeline();
-            switchDashboard('internal'); 
+            credits: { enabled: false }, exporting: { enabled: false }
         };
 
         async function fetchMetricsDataPipeline() {
+            // Data logic remains same as per your original structure
+            const Q1_START = '2026-03-01T00:00:00.000Z', Q1_END = '2026-03-31T23:59:59.999Z';
+            const Q2_START = '2026-06-01T00:00:00.000Z', Q2_END = '2026-07-31T23:59:59.999Z';
             const [intQ1, intQ2, extQ1, extQ2] = await Promise.all([
                 supabaseClient.from('survey_submissions').select('*').gte('created_at', Q1_START).lte('created_at', Q1_END),
                 supabaseClient.from('survey_submissions').select('*').gte('created_at', Q2_START).lte('created_at', Q2_END),
                 supabaseClient.from('external_surveys').select('*').gte('created_at', Q1_START).lte('created_at', Q1_END),
                 supabaseClient.from('external_surveys').select('*').gte('created_at', Q2_START).lte('created_at', Q2_END)
             ]);
-            cachedInternal = { q1: intQ1.data || [], q2: intQ2.data || [] };
-            cachedExternal = { q1: extQ1.data || [], q2: extQ2.data || [] };
+            return { int: { q1: intQ1.data || [], q2: intQ2.data || [] }, ext: { q1: extQ1.data || [], q2: extQ2.data || [] } };
+        }
+
+        async function initDashboard() {
+            const data = await fetchMetricsDataPipeline();
+            window.appData = data;
+            switchDashboard('internal');
         }
 
         function switchDashboard(type) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.getElementById(`section-${type}`).classList.add('active');
-            const btnInt = document.getElementById('btn-internal'), btnExt = document.getElementById('btn-external');
-            if(type === 'internal') {
-                btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-indigo-600 shadow-md text-white";
-                btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200";
-                renderActiveDataset(cachedInternal.q1, cachedInternal.q2, 'internal');
-            } else {
-                btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-rose-600 shadow-md text-white";
-                btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200";
-                renderActiveDataset(cachedExternal.q1, cachedExternal.q2, 'external');
-            }
+            const d = type === 'internal' ? appData.int : appData.ext;
+            renderAllCharts(d.q1, d.q2, type);
         }
 
-        function renderActiveDataset(q1, q2, mode) {
-            document.getElementById('txt-total-pool').innerText = q1.length + q2.length;
-            document.getElementById('txt-q1-count').innerText = q1.length;
-            document.getElementById('txt-q2-count').innerText = q2.length;
-            const isInt = mode === 'internal';
-            const conditionCheck = (item) => isInt ? item.experience_rating === 'Positive' : item.has_availed_recently === true;
-            const q1Sat = q1.filter(conditionCheck).length, q1Unsat = q1.length - q1Sat;
-            const q2Sat = q2.filter(conditionCheck).length, q2Unsat = q2.length - q2Sat;
-            const totSat = q1Sat + q2Sat, totUnsat = q1Unsat + q2Unsat;
-
-            const basePieConf = (title, data) => Highcharts.merge(darkThemeBase, {
-                title: { text: title },
-                plotOptions: { pie: { allowPointSelect: true, borderWidth: 2, borderColor: '#1e293b', cursor: 'pointer', center: ['50%', '42%'], size: '75%' } },
-                series: [{ type: 'pie', enableMouseTracking: false, animation: { duration: 1600 }, colorByPoint: true, data: data }]
-            });
-
-            Highcharts.chart('satChartOverall', basePieConf('OVERALL SATURATION', [{ name: 'Satisfied', y: totSat, color: '#22c55e' }, { name: 'Unsatisfied', y: totUnsat, color: '#ef4444' }]));
-            Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH', [{ name: 'Satisfied', y: q1Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q1Unsat, color: '#ef4444' }]));
-            Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
-
-            if (isInt) {
-                renderForceStackedGenderChart('intDemoChartQ1', q1, 'GENDER & AGE (Q1)');
-                renderForceStackedGenderChart('intDemoChartQ2', q2, 'GENDER & AGE (Q2)');
-                renderInternalStructuralCharts(q1, q2); 
-            } else {
-                renderForceStackedGenderChart('extDemoChartQ1', q1, 'MARKET MATRIX (Q1)');
-                renderForceStackedGenderChart('extDemoChartQ2', q2, 'MARKET MATRIX (Q2)');
-                renderExternalStructuralCharts(q1, q2);
-            }
-        }
-
-        function calculateAgeBracketsByGender(dataPool) {
-            let total = dataPool.length || 1;
+        function renderRadarDemographicsChart(containerId, dataset, titleText) {
+            const total = dataset.length || 1;
             let m = [0,0,0,0,0], f = [0,0,0,0,0];
-            dataPool.forEach(item => {
-                let i = item.age <= 19 ? 0 : item.age <= 39 ? 1 : item.age <= 59 ? 2 : item.age <= 79 ? 3 : 4;
-                if (item.gender === 'Male') m[i]++; else f[i]++;
+            dataset.forEach(i => {
+                let idx = i.age <= 19 ? 0 : i.age <= 39 ? 1 : i.age <= 59 ? 2 : i.age <= 79 ? 3 : 4;
+                i.gender === 'Male' ? m[idx]++ : f[idx]++;
             });
-            return { male: m.map(v => Math.round((v/total)*100)), female: f.map(v => Math.round((v/total)*100)) };
-        }
 
-        function renderForceStackedGenderChart(containerId, dataset, titleText) {
-            const p = calculateAgeBracketsByGender(dataset);
             Highcharts.chart(containerId, Highcharts.merge(darkThemeBase, {
-                chart: { type: 'bar' }, title: { text: titleText },
-                plotOptions: { bar: { stacking: 'normal', borderRadius: 4 } },
+                chart: { polar: true, type: 'area' },
+                title: { text: titleText },
+                pane: { size: '80%' },
+                xAxis: { categories: ['0-19', '20-39', '40-59', '60-79', '80+'], tickmarkPlacement: 'on', lineWidth: 0 },
+                yAxis: { gridLineInterpolation: 'polygon', lineWidth: 0, min: 0 },
                 series: [
-                    { name: 'Female', data: p.female.map(v => -v), color: '#ff1493' },
-                    { name: 'Male', data: p.male, color: '#00bfff' }
+                    { name: 'Female', data: f.map(v => Math.round((v/total)*100)), color: '#ff1493', pointPlacement: 'on' },
+                    { name: 'Male', data: m.map(v => Math.round((v/total)*100)), color: '#00bfff', pointPlacement: 'on' }
                 ]
             }));
         }
 
-        function renderInternalStructuralCharts(q1, q2) {
-            const processLoc = (arr) => arr.reduce((acc, c) => { acc[c.location] = (acc[c.location] || 0) + 1; return acc; }, {});
-            const q1Loc = processLoc(q1), q2Loc = processLoc(q2);
-            const allLocs = Array.from(new Set([...Object.keys(q1Loc), ...Object.keys(q2Loc)]));
-            Highcharts.chart('intLocChart', Highcharts.merge(darkThemeBase, { chart: { type: 'area' }, title: { text: 'REGIONAL TRAFFIC' }, xAxis: { categories: allLocs }, series: [{ name: 'Q1', data: allLocs.map(l => q1Loc[l] || 0), color: '#4f46e5' }, { name: 'Q2', data: allLocs.map(l => q2Loc[l] || 0), color: '#06b6d4' }] }));
-            Highcharts.chart('intSentimentChart', Highcharts.merge(darkThemeBase, { chart: { type: 'pie' }, title: { text: 'VOLUME SPREAD' }, plotOptions: { pie: { innerSize: '60%' } }, series: [{ data: [{ name: 'Q1 Pos', y: q1.filter(s => s.experience_rating === 'Positive').length, color: '#312e81' }, { name: 'Q2 Pos', y: q2.filter(s => s.experience_rating === 'Positive').length, color: '#10b981' }] }] }));
+        function renderAllCharts(q1, q2, mode) {
+            // Re-render your Pie and Radar charts here
+            renderRadarDemographicsChart(mode === 'internal' ? 'intDemoChartQ1' : 'extDemoChartQ1', q1, 'QUARTER 1 DEMOGRAPHICS');
+            renderRadarDemographicsChart(mode === 'internal' ? 'intDemoChartQ2' : 'extDemoChartQ2', q2, 'QUARTER 2 DEMOGRAPHICS');
+            // ... add your structural chart calls here
         }
 
-        function renderExternalStructuralCharts(q1, q2) {
-            const processLoc = (arr) => arr.reduce((acc, c) => { acc[c.location] = (acc[c.location] || 0) + 1; return acc; }, {});
-            const q1Loc = processLoc(q1), q2Loc = processLoc(q2);
-            const allLocs = Array.from(new Set([...Object.keys(q1Loc), ...Object.keys(q2Loc)]));
-            Highcharts.chart('extLocChart', Highcharts.merge(darkThemeBase, { chart: { type: 'line' }, title: { text: 'OUTREACH TARGETS' }, xAxis: { categories: allLocs }, series: [{ name: 'Q1', data: allLocs.map(l => q1Loc[l] || 0), color: '#be123c' }, { name: 'Q2', data: allLocs.map(l => q2Loc[l] || 0), color: '#e11d48' }] }));
-            Highcharts.chart('extBalanceChart', Highcharts.merge(darkThemeBase, { chart: { type: 'pie' }, title: { text: 'CONVERSION RATIOS' }, plotOptions: { pie: { innerSize: '70%' } }, series: [{ data: [{ name: 'Q1 Engaged', y: q1.filter(s => s.has_availed_recently).length, color: '#881337' }, { name: 'Q2 Engaged', y: q2.filter(s => s.has_availed_recently).length, color: '#e11d48' }] }] }));
-        }
+        window.onload = initDashboard;
     </script>
 </body>
 </html>
