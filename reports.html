@@ -125,9 +125,9 @@
         <div id="section-internal" class="tab-content active space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- SEGMENTED SPLIT: Q1 AND Q2 TWIN FORCE-STACK MATRICES -->
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex flex-col gap-4 min-h-[360px]">
-                     <div id="intDemoChartQ1" class="w-full h-[160px]"></div>
-                     <div id="intDemoChartQ2" class="w-full h-[160px] border-t border-slate-800/60 pt-2"></div>
+                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex flex-col gap-4 min-h-[420px]">
+                     <div id="intDemoChartQ1" class="w-full h-[180px]"></div>
+                     <div id="intDemoChartQ2" class="w-full h-[180px] border-t border-slate-800/60 pt-4"></div>
                 </div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intOccChart"></div>
             </div>
@@ -141,9 +141,9 @@
         <div id="section-external" class="tab-content space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- SEGMENTED SPLIT: Q1 AND Q2 TWIN FORCE-STACK MATRICES -->
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex flex-col gap-4 min-h-[360px]">
-                     <div id="extDemoChartQ1" class="w-full h-[160px]"></div>
-                     <div id="extDemoChartQ2" class="w-full h-[160px] border-t border-slate-800/60 pt-2"></div>
+                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex flex-col gap-4 min-h-[420px]">
+                     <div id="extDemoChartQ1" class="w-full h-[180px]"></div>
+                     <div id="extDemoChartQ2" class="w-full h-[180px] border-t border-slate-800/60 pt-4"></div>
                 </div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extOccChart"></div>
             </div>
@@ -332,30 +332,27 @@
                 else result.female[idx]++;
             });
 
-            // Convert to absolute percentages relative to the total population pool
             return {
                 male: result.male.map(v => Math.round((v / totalCount) * 100)),
                 female: result.female.map(v => Math.round((v / totalCount) * 100))
             };
         }
 
-        // BI-QUARTER NEON SEGMENTATION FACTORY
+        // BI-QUARTER NEON SEGMENTATION FACTORY (UPDATED FOR OUTSIDE LABELS + LEADER LINES)
         function renderForceStackedGenderChart(containerId, dataset, titleText) {
             const percentages = calculateAgeBracketsByGender(dataset);
             const brackets = ['0-19', '20-39', '40-59', '60-79', '80+'];
 
-            // Find the last index that contains a value to attach the outer vector icon safely
+            // Find outermost coordinates to pin icons cleanly
             const lastMaleIdx = percentages.male.reduce((last, val, idx) => val > 0 ? idx : last, -1);
             const lastFemaleIdx = percentages.female.reduce((last, val, idx) => val > 0 ? idx : last, -1);
 
-            // Shading steps from hot neon down to core deep tinting
             const femaleColors = ['#ff1493', '#e0115f', '#c71585', '#b01140', '#800020'];
             const maleColors = ['#00bfff', '#1e90ff', '#4169e1', '#0047ab', '#000080'];
 
-            // Generate structured, directional force stack sets
             let seriesConfig = [];
 
-            // 1. Female series (Negative values to build leftward force)
+            // 1. Female segments (Negative stack vectors moving Left)
             brackets.forEach((range, idx) => {
                 let pct = percentages.female[idx];
                 if (pct > 0) {
@@ -366,17 +363,28 @@
                         className: 'glow-pink',
                         dataLabels: {
                             enabled: true, useHTML: true,
+                            align: 'right', 
+                            x: -35,         
+                            crop: false, overflow: 'none',
                             style: { color: '#ffffff', fontSize: '10px', fontWeight: '800' },
                             formatter: function() {
-                                let icon = (idx === lastFemaleIdx) ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; margin-right:4px;"><circle cx="12" cy="8" r="6"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="9" y1="18" x2="15" y2="18"/></svg>` : '';
-                                return `<div class="text-[#ff1493] glow-pink text-center font-mono">${icon}${range}<br>${Math.abs(this.y)}%</div>`;
+                                // Dynamic Inline SVG Vector path for Female Sign
+                                let icon = (idx === lastFemaleIdx) ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff1493" stroke-width="2.5" style="display:inline-block; vertical-align:middle; margin-right:6px;"><circle cx="12" cy="8" r="5"/><line x1="12" y1="13" x2="12" y2="21"/><line x1="8" y1="17" x2="16" y2="17"/></svg>` : '';
+                                
+                                return `
+                                    <div class="flex items-center justify-end font-mono relative pr-4">
+                                        <span class="text-[#ff1493] glow-pink whitespace-nowrap">${icon}${range} (${Math.abs(this.y)}%)</span>
+                                        <!-- Absolute Render Bridge acting as horizontal leader line -->
+                                        <div style="position:absolute; right:-5px; top:50%; width:25px; height:1px; background:#334155;"></div>
+                                    </div>
+                                `;
                             }
                         }
                     });
                 }
             });
 
-            // 2. Male series (Positive values to build rightward force)
+            // 2. Male segments (Positive stack vectors moving Right)
             brackets.forEach((range, idx) => {
                 let pct = percentages.male[idx];
                 if (pct > 0) {
@@ -387,10 +395,21 @@
                         className: 'glow-blue',
                         dataLabels: {
                             enabled: true, useHTML: true,
+                            align: 'left', 
+                            x: 35,         
+                            crop: false, overflow: 'none',
                             style: { color: '#ffffff', fontSize: '10px', fontWeight: '800' },
                             formatter: function() {
-                                let icon = (idx === lastMaleIdx) ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; margin-left:4px;"><circle cx="10" cy="14" r="6"/><polyline points="15 3 21 3 21 9"/><line x1="15" y1="9" x2="21" y2="3"/></svg>` : '';
-                                return `<div class="text-[#00bfff] glow-blue text-center font-mono">${range}${icon}<br>${this.y}%</div>`;
+                                // Dynamic Inline SVG Vector path for Male Sign
+                                let icon = (idx === lastMaleIdx) ? `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00bfff" stroke-width="2.5" style="display:inline-block; vertical-align:middle; margin-left:6px;"><circle cx="9" cy="15" r="5"/><polyline points="16 3 21 3 21 8"/><line x1="14" y1="10" x2="21" y2="3"/></svg>` : '';
+                                
+                                return `
+                                    <div class="flex items-center justify-start font-mono relative pl-4">
+                                        <!-- Absolute Render Bridge acting as horizontal leader line -->
+                                        <div style="position:absolute; left:-5px; top:50%; width:25px; height:1px; background:#334155;"></div>
+                                        <span class="text-[#00bfff] glow-blue whitespace-nowrap">${range} (${this.y}%)${icon}</span>
+                                    </div>
+                                `;
                             }
                         }
                     });
@@ -398,7 +417,7 @@
             });
 
             Highcharts.chart(containerId, {
-                chart: { type: 'bar', height: 140, backgroundColor: '#1e293b' },
+                chart: { type: 'bar', height: 140, backgroundColor: '#1e293b', spacingLeft: 50, spacingRight: 50 },
                 title: { 
                     text: titleText, 
                     style: { color: '#64748b', fontSize: '9px', fontWeight: '900', letterSpacing: '0.2em' },
@@ -406,7 +425,7 @@
                 },
                 plotOptions: {
                     bar: {
-                        headSize: 7, // Draws cutting line intersections between different brackets
+                        headSize: 7, 
                         stacking: 'normal',
                         borderWidth: 0,
                         pointPadding: 0.1
@@ -418,11 +437,6 @@
                 },
                 yAxis: {
                     reversedStacks: true, opposite: true, labels: { enabled: false }, gridLineColor: 'transparent', title: '',
-                    stackLabels: {
-                        enabled: true, verticalAlign: 'top', y: -2,
-                        style: { color: '#94a3b8', fontSize: '10px', fontWeight: '900', letterSpacing: '0.05em' },
-                        format: 'TOTAL: 100'
-                    },
                     startOnTick: false, endOnTick: false
                 },
                 xAxis: { visible: false }, legend: { enabled: false }, credits: { enabled: false }, exporting: { enabled: false },
