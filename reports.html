@@ -29,7 +29,7 @@
         ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .highcharts-container { border-radius: 1.5rem !important; overflow: hidden; }
+        .highcharts-container { border-radius: 1.5rem !important; overflow: visible !important; }
         
         /* Neon Glow Structural Filters */
         .glow-blue { filter: drop-shadow(0px 0px 8px rgba(0, 191, 255, 0.8)); }
@@ -123,12 +123,11 @@
 
         <!-- ==================== INTERNAL DATA VIEW ==================== -->
         <div id="section-internal" class="tab-content active space-y-6">
-            <!-- FULL SCREEN SEPARATED FORCE-STACK MATRICES -->
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full">
-                 <div id="intDemoChartQ1" class="w-full h-[220px]"></div>
+            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
+                 <div id="intDemoChartQ1" class="w-full h-[240px]"></div>
             </div>
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full">
-                 <div id="intDemoChartQ2" class="w-full h-[220px]"></div>
+            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
+                 <div id="intDemoChartQ2" class="w-full h-[240px]"></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intLocChart"></div>
@@ -138,12 +137,11 @@
 
         <!-- ==================== EXTERNAL MARKET VIEW ==================== -->
         <div id="section-external" class="tab-content space-y-6">
-            <!-- FULL SCREEN SEPARATED FORCE-STACK MATRICES -->
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full">
-                 <div id="extDemoChartQ1" class="w-full h-[220px]"></div>
+            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
+                 <div id="extDemoChartQ1" class="w-full h-[240px]"></div>
             </div>
-            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full">
-                 <div id="extDemoChartQ2" class="w-full h-[220px]"></div>
+            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
+                 <div id="extDemoChartQ2" class="w-full h-[240px]"></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extLocChart"></div>
@@ -336,7 +334,6 @@
             };
         }
 
-        // SEPARATED FULL-SCREEN FORCE CHART STRATEGY WITH DYNAMIC POINTER LABELS
         function renderForceStackedGenderChart(containerId, dataset, titleText) {
             const percentages = calculateAgeBracketsByGender(dataset);
             const brackets = ['0-19', '20-39', '40-59', '60-79', '80+'];
@@ -361,15 +358,15 @@
                         dataLabels: {
                             enabled: true, useHTML: true,
                             align: 'center', 
-                            y: -36, // Increased tracking padding clear of bar boundaries
-                            crop: false, overflow: 'none',
+                            y: -42, 
+                            crop: false, overflow: 'allow',
                             style: { color: '#ffffff', fontSize: '9px', fontWeight: '800' },
                             formatter: function() {
-                                let icon = (idx === lastFemaleIdx) ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ff1493" stroke-width="2.5" style="display:inline-block; vertical-align:middle; margin-right:4px;"><circle cx="12" cy="8" r="5"/><line x1="12" y1="13" x2="12" y2="21"/><line x1="8" y1="17" x2="16" y2="17"/></svg>` : '';
+                                let icon = (idx === lastFemaleIdx) ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ff1493" stroke-width="3" style="display:inline-block; vertical-align:middle; margin-right:4px;"><circle cx="12" cy="8" r="5"/><line x1="12" y1="13" x2="12" y2="21"/><line x1="8" y1="17" x2="16" y2="17"/></svg>` : '';
                                 return `
-                                    <div class="flex flex-col items-center font-mono relative pb-3">
-                                        <span class="text-[#ff1493] glow-pink whitespace-nowrap">${icon}${range} (${Math.abs(this.y)}%)</span>
-                                        <div style="position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:1px; height:18px; background:#475569;"></div>
+                                    <div style="display: flex; flex-direction: column; align-items: center; font-family: monospace; position: relative; padding-bottom: 12px;">
+                                        <span style="color: #ff1493; white-space: nowrap; display: flex; align-items: center;">${icon}${range} (${Math.abs(this.y)}%)</span>
+                                        <div style="position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:1px; height:16px; background:#475569;"></div>
                                     </div>
                                 `;
                             }
@@ -390,15 +387,15 @@
                         dataLabels: {
                             enabled: true, useHTML: true,
                             align: 'center', 
-                            y: 36, // Increased tracking padding clear of bar boundaries
-                            crop: false, overflow: 'none',
+                            y: 42, 
+                            crop: false, overflow: 'allow',
                             style: { color: '#ffffff', fontSize: '9px', fontWeight: '800' },
                             formatter: function() {
-                                let icon = (idx === lastMaleIdx) ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00bfff" stroke-width="2.5" style="display:inline-block; vertical-align:middle; margin-left:4px;"><circle cx="9" cy="15" r="5"/><polyline points="16 3 21 3 21 8"/><line x1="14" y1="10" x2="21" y2="3"/></svg>` : '';
+                                let icon = (idx === lastMaleIdx) ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00bfff" stroke-width="3" style="display:inline-block; vertical-align:middle; margin-left:4px;"><circle cx="9" cy="15" r="5"/><polyline points="16 3 21 3 21 8"/><line x1="14" y1="10" x2="21" y2="3"/></svg>` : '';
                                 return `
-                                    <div class="flex flex-col items-center font-mono relative pt-3">
-                                        <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); width:1px; height:18px; background:#475569;"></div>
-                                        <span class="text-[#00bfff] glow-blue whitespace-nowrap">${range} (${this.y}%)${icon}</span>
+                                    <div style="display: flex; flex-direction: column; align-items: center; font-family: monospace; position: relative; padding-top: 12px;">
+                                        <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); width:1px; height:16px; background:#475569;"></div>
+                                        <span style="color: #00bfff; white-space: nowrap; display: flex; align-items: center;">${range} (${this.y}%)${icon}</span>
                                     </div>
                                 `;
                             }
@@ -408,10 +405,18 @@
             });
 
             Highcharts.chart(containerId, {
-                chart: { type: 'bar', height: 180, backgroundColor: '#1e293b', spacingLeft: 40, spacingRight: 40, spacingTop: 30, spacingBottom: 30 },
+                chart: { 
+                    type: 'bar', 
+                    height: 240, 
+                    backgroundColor: '#1e293b', 
+                    spacingLeft: 50, 
+                    spacingRight: 50,
+                    marginTop: 60,
+                    marginBottom: 60
+                },
                 title: { 
                     text: titleText, 
-                    style: { color: '#64748b', fontSize: '9px', fontWeight: '900', letterSpacing: '0.2em' },
+                    style: { color: '#64748b', fontSize: '10px', fontWeight: '900', letterSpacing: '0.2em' },
                     align: 'left'
                 },
                 plotOptions: {
@@ -419,7 +424,11 @@
                         headSize: 7, 
                         stacking: 'normal',
                         borderWidth: 0,
-                        pointPadding: 0.2
+                        pointPadding: 0.25,
+                        dataLabels: {
+                            crop: false,
+                            overflow: 'allow'
+                        }
                     }
                 },
                 tooltip: {
