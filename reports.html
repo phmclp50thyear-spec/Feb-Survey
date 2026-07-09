@@ -122,14 +122,13 @@
         </div>
 
         <!-- ==================== INTERNAL DATA VIEW ==================== -->
-        <div id="section-internal" class="tab-content active space-y-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- SEGMENTED SPLIT: Q1 AND Q2 TWIN FORCE-STACK MATRICES -->
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex flex-col gap-4 min-h-[460px]">
-                     <div id="intDemoChartQ1" class="w-full h-[200px]"></div>
-                     <div id="intDemoChartQ2" class="w-full h-[200px] border-t border-slate-800/60 pt-4"></div>
-                </div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intOccChart"></div>
+        <div id="section-internal" class="tab-content active space-y-6">
+            <!-- FULL SCREEN SEPARATED FORCE-STACK MATRICES -->
+            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full">
+                 <div id="intDemoChartQ1" class="w-full h-[220px]"></div>
+            </div>
+            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full">
+                 <div id="intDemoChartQ2" class="w-full h-[220px]"></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intLocChart"></div>
@@ -138,14 +137,13 @@
         </div>
 
         <!-- ==================== EXTERNAL MARKET VIEW ==================== -->
-        <div id="section-external" class="tab-content space-y-8">
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- SEGMENTED SPLIT: Q1 AND Q2 TWIN FORCE-STACK MATRICES -->
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex flex-col gap-4 min-h-[460px]">
-                     <div id="extDemoChartQ1" class="w-full h-[200px]"></div>
-                     <div id="extDemoChartQ2" class="w-full h-[200px] border-t border-slate-800/60 pt-4"></div>
-                </div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extOccChart"></div>
+        <div id="section-external" class="tab-content space-y-6">
+            <!-- FULL SCREEN SEPARATED FORCE-STACK MATRICES -->
+            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full">
+                 <div id="extDemoChartQ1" class="w-full h-[220px]"></div>
+            </div>
+            <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full">
+                 <div id="extDemoChartQ2" class="w-full h-[220px]"></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extLocChart"></div>
@@ -338,7 +336,7 @@
             };
         }
 
-        // UPDATED: STACKS LABELS VERTICALLY (ABOVE/BELOW THE BAR CONTAINER) TO COMPLETELY PREVENT OVERLAPPING
+        // SEPARATED FULL-SCREEN FORCE CHART STRATEGY WITH DYNAMIC POINTER LABELS
         function renderForceStackedGenderChart(containerId, dataset, titleText) {
             const percentages = calculateAgeBracketsByGender(dataset);
             const brackets = ['0-19', '20-39', '40-59', '60-79', '80+'];
@@ -351,7 +349,7 @@
 
             let seriesConfig = [];
 
-            // 1. Female segments (Shifted ABOVE the bar container)
+            // 1. Female series segments (Shifted completely above the bar container)
             brackets.forEach((range, idx) => {
                 let pct = percentages.female[idx];
                 if (pct > 0) {
@@ -363,7 +361,7 @@
                         dataLabels: {
                             enabled: true, useHTML: true,
                             align: 'center', 
-                            y: -32, // Pushes text completely ABOVE the horizontal bar layer
+                            y: -36, // Increased tracking padding clear of bar boundaries
                             crop: false, overflow: 'none',
                             style: { color: '#ffffff', fontSize: '9px', fontWeight: '800' },
                             formatter: function() {
@@ -371,8 +369,7 @@
                                 return `
                                     <div class="flex flex-col items-center font-mono relative pb-3">
                                         <span class="text-[#ff1493] glow-pink whitespace-nowrap">${icon}${range} (${Math.abs(this.y)}%)</span>
-                                        <!-- Vertical pointer indicator line dropping down onto bar boundary -->
-                                        <div style="position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:1px; height:14px; background:#475569;"></div>
+                                        <div style="position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:1px; height:18px; background:#475569;"></div>
                                     </div>
                                 `;
                             }
@@ -381,7 +378,7 @@
                 }
             });
 
-            // 2. Male segments (Shifted BELOW the bar container)
+            // 2. Male series segments (Shifted completely below the bar container)
             brackets.forEach((range, idx) => {
                 let pct = percentages.male[idx];
                 if (pct > 0) {
@@ -393,15 +390,14 @@
                         dataLabels: {
                             enabled: true, useHTML: true,
                             align: 'center', 
-                            y: 32, // Pushes text completely BELOW the horizontal bar layer
+                            y: 36, // Increased tracking padding clear of bar boundaries
                             crop: false, overflow: 'none',
                             style: { color: '#ffffff', fontSize: '9px', fontWeight: '800' },
                             formatter: function() {
                                 let icon = (idx === lastMaleIdx) ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00bfff" stroke-width="2.5" style="display:inline-block; vertical-align:middle; margin-left:4px;"><circle cx="9" cy="15" r="5"/><polyline points="16 3 21 3 21 8"/><line x1="14" y1="10" x2="21" y2="3"/></svg>` : '';
                                 return `
                                     <div class="flex flex-col items-center font-mono relative pt-3">
-                                        <!-- Vertical pointer indicator line rising up onto bar boundary -->
-                                        <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); width:1px; height:14px; background:#475569;"></div>
+                                        <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); width:1px; height:18px; background:#475569;"></div>
                                         <span class="text-[#00bfff] glow-blue whitespace-nowrap">${range} (${this.y}%)${icon}</span>
                                     </div>
                                 `;
@@ -412,7 +408,7 @@
             });
 
             Highcharts.chart(containerId, {
-                chart: { type: 'bar', height: 160, backgroundColor: '#1e293b', spacingLeft: 40, spacingRight: 40, spacingTop: 25, spacingBottom: 25 },
+                chart: { type: 'bar', height: 180, backgroundColor: '#1e293b', spacingLeft: 40, spacingRight: 40, spacingTop: 30, spacingBottom: 30 },
                 title: { 
                     text: titleText, 
                     style: { color: '#64748b', fontSize: '9px', fontWeight: '900', letterSpacing: '0.2em' },
@@ -423,7 +419,7 @@
                         headSize: 7, 
                         stacking: 'normal',
                         borderWidth: 0,
-                        pointPadding: 0.15
+                        pointPadding: 0.2
                     }
                 },
                 tooltip: {
@@ -440,14 +436,6 @@
         }
 
         function renderInternalStructuralCharts(q1, q2) {
-            const processOcc = (arr) => arr.reduce((acc, c) => { acc[c.occupation] = (acc[c.occupation] || 0) + 1; return acc; }, {});
-            const q1Occ = processOcc(q1), q2Occ = processOcc(q2);
-            const allOccs = Array.from(new Set([...Object.keys(q1Occ), ...Object.keys(q2Occ)]));
-            Highcharts.chart('intOccChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'bar' }, title: { text: 'OCCUPATIONAL VARIANCE' }, xAxis: { categories: allOccs },
-                series: [{ name: 'Q1 Block', data: allOccs.map(o => q1Occ[o] || 0), color: '#6366f1' }, { name: 'Q2 Block', data: allOccs.map(o => q2Occ[o] || 0), color: '#2dd4bf' }]
-            }));
-
             const processLoc = (arr) => arr.reduce((acc, c) => { acc[c.location] = (acc[c.location] || 0) + 1; return acc; }, {});
             const q1Loc = processLoc(q1), q2Loc = processLoc(q2);
             const allLocs = Array.from(new Set([...Object.keys(q1Loc), ...Object.keys(q2Loc)]));
@@ -466,14 +454,6 @@
         }
 
         function renderExternalStructuralCharts(q1, q2) {
-            const processOcc = (arr) => arr.reduce((acc, c) => { acc[c.occupation] = (acc[c.occupation] || 0) + 1; return acc; }, {});
-            const q1Occ = processOcc(q1), q2Occ = processOcc(q2);
-            const allOccs = Array.from(new Set([...Object.keys(q1Occ), ...Object.keys(q2Occ)]));
-            Highcharts.chart('extOccChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'bar' }, title: { text: 'MARKET TARGET SEGMENTS' }, xAxis: { categories: allOccs },
-                series: [{ name: 'Q1 Market', data: allOccs.map(o => q1Occ[o] || 0), color: '#9f1239' }, { name: 'Q2 Market', data: allOccs.map(o => q2Occ[o] || 0), color: '#fb7185' }]
-            }));
-
             const processLoc = (arr) => arr.reduce((acc, c) => { acc[c.location] = (acc[c.location] || 0) + 1; return acc; }, {});
             const q1Loc = processLoc(q1), q2Loc = processLoc(q2);
             const allLocs = Array.from(new Set([...Object.keys(q1Loc), ...Object.keys(q2Loc)]));
