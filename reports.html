@@ -31,6 +31,10 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         .highcharts-container { border-radius: 1.5rem !important; overflow: visible !important; }
+        
+        /* Neon Glow Structural Filters */
+        .glow-blue { filter: drop-shadow(0px 0px 8px rgba(0, 191, 255, 0.8)); }
+        .glow-pink { filter: drop-shadow(0px 0px 8px rgba(255, 20, 147, 0.8)); }
     </style>
 </head>
 <body class="bg-[#0f172a] font-sans text-slate-100 min-h-screen">
@@ -65,7 +69,7 @@
                 <button onclick="switchDashboard('external')" id="btn-external" class="px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200">External Market</button>
             </div>
             
-            <!-- TOTALS MATRIX CARD -->
+            <!-- REPLACEMENT GEOMETRIC TOTALS MATRIX CARD -->
             <div class="bg-[#1e293b] border border-slate-800 rounded-2xl p-4 flex-1 flex flex-col sm:flex-row justify-between items-center gap-4 px-8 shadow-2xl">
                 <div class="flex flex-col">
                     <span class="text-[9px] font-black tracking-widest text-slate-400 uppercase">Total Submissions Matrix</span>
@@ -121,7 +125,7 @@
         <!-- ==================== INTERNAL DATA VIEW ==================== -->
         <div id="section-internal" class="tab-content active space-y-6">
             <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
-                 <div id="intPictorialChart" class="w-full h-[340px]"></div>
+                 <div id="intPictorialChart" class="w-full h-[320px]"></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intLocChart"></div>
@@ -132,7 +136,7 @@
         <!-- ==================== EXTERNAL MARKET VIEW ==================== -->
         <div id="section-external" class="tab-content space-y-6">
             <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
-                 <div id="extPictorialChart" class="w-full h-[340px]"></div>
+                 <div id="extPictorialChart" class="w-full h-[320px]"></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extLocChart"></div>
@@ -152,7 +156,30 @@
 
         let cachedInternal = { q1: [], q2: [] }, cachedExternal = { q1: [], q2: [] };
 
-        // Standard highcharts configurations
+        // Pie Fan Animations Plugin
+        (function (H) {
+            H.seriesTypes.pie.prototype.animate = function (init) {
+                const series = this, chart = series.chart, points = series.points, { animation } = series.options, { startAngleRad } = series;
+                function fanAnimate(point, startAngleRad) {
+                    const graphic = point.graphic, args = point.shapeArgs;
+                    if (graphic && args) {
+                        graphic.attr({ start: startAngleRad, end: startAngleRad, opacity: 1 })
+                            .animate({ start: args.start, end: args.end }, { duration: animation.duration / points.length }, function () {
+                                if (points[point.index + 1]) { fanAnimate(points[point.index + 1], args.end); }
+                                if (point.index === series.points.length - 1) {
+                                    series.dataLabelsGroup?.animate({ opacity: 1 }, void 0, function () {
+                                        points.forEach(p => { p.opacity = 1; });
+                                        series.update({ enableMouseTracking: true }, false);
+                                        chart.update({ plotOptions: { pie: { innerSize: '50%', borderRadius: 6, center: ['50%', '42%'], size: '75%' } } });
+                                    });
+                                }
+                            });
+                    }
+                }
+                if (init) { points.forEach(point => { point.opacity = 0; }); } else { fanAnimate(points[0], startAngleRad); }
+            };
+        }(Highcharts));
+
         const darkThemeBase = {
             chart: { backgroundColor: '#1e293b', style: { fontFamily: 'Inter, sans-serif' } },
             title: { style: { color: '#94a3b8', fontSize: '10px', fontWeight: '900', letterSpacing: '0.25em' }, align: 'left' },
@@ -203,26 +230,8 @@
             }
         }
 
-        function getGenderAgeDistribution(records, genderFilter) {
-            let dist = { '0-18': 0, '19-35': 0, '36-50': 0, '51+': 0 };
-            records.forEach(r => {
-                const rGender = (r.gender || '').toLowerCase();
-                if (rGender.startsWith(genderFilter.toLowerCase())) {
-                    const age = parseInt(r.age);
-                    if (!isNaN(age)) {
-                        if (age <= 18) dist['0-18']++;
-                        else if (age <= 35) dist['19-35']++;
-                        else if (age <= 50) dist['36-50']++;
-                        else dist['51+']++;
-                    }
-                }
-            });
-            return [dist['0-18'], dist['19-35'], dist['36-50'], dist['51+']];
-        }
-
         function renderActiveDataset(q1, q2, mode) {
-            const combinedPool = [...q1, ...q2];
-            document.getElementById('txt-total-pool').innerText = combinedPool.length;
+            document.getElementById('txt-total-pool').innerText = q1.length + q2.length;
             document.getElementById('txt-q1-count').innerText = q1.length;
             document.getElementById('txt-q2-count').innerText = q2.length;
 
@@ -245,10 +254,14 @@
                 plotOptions: {
                     pie: {
                         allowPointSelect: true, borderWidth: 2, borderColor: '#1e293b', cursor: 'pointer', center: ['50%', '42%'], size: '75%',
-                        dataLabels: { enabled: false }
+                        dataLabels: {
+                            enabled: true, distance: 20, format: '<b>{point.name}</b><br>{point.percentage:.0f}%',
+                            style: { color: '#94a3b8', fontSize: '11px', fontWeight: '700', textOutline: 'none' },
+                            connectorWidth: 1.5, connectorColor: '#334155'
+                        }
                     }
                 },
-                series: [{ type: 'pie', data: data }]
+                series: [{ type: 'pie', enableMouseTracking: false, animation: { duration: 1600 }, colorByPoint: true, data: data }]
             });
 
             Highcharts.chart('satChartOverall', basePieConf('OVERALL SATURATION INDEX', [{ name: 'Satisfied', y: totSat, color: '#22c55e' }, { name: 'Unsatisfied', y: totUnsat, color: '#ef4444' }]));
@@ -256,74 +269,103 @@
             Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
             if (isInt) {
-                renderPictorialChart('intPictorialChart', combinedPool, 'INTERNAL DEMOGRAPHIC PROFILE');
+                renderPictorialChart('intPictorialChart', q1, q2, 'internal');
                 renderInternalStructuralCharts(q1, q2); 
             } else {
-                renderPictorialChart('extPictorialChart', combinedPool, 'EXTERNAL DEMOGRAPHIC PROFILE');
+                renderPictorialChart('extPictorialChart', q1, q2, 'external');
                 renderExternalStructuralCharts(q1, q2);
             }
         }
 
-        function renderPictorialChart(containerId, combinedPool, titleText) {
-            const maleData = getGenderAgeDistribution(combinedPool, 'male');
-            const femaleData = getGenderAgeDistribution(combinedPool, 'female');
+        function renderPictorialChart(containerId, q1, q2, mode) {
+            const isInt = mode === 'internal';
+            const conditionCheck = (item) => isInt ? item.experience_rating === 'Positive' : item.has_availed_recently === true;
 
-            const malePath = 'M256,0C114.6,0,0,114.6,0,256s114.6,256,256,256s256-114.6,256-256S397.4,0,256,0z M256,96c35.3,0,64,28.7,64,64s-28.7,64-64,64s-64-28.7-64-64S220.7,96,256,96z M256,416c-61.9,0-116.4-35.1-144-86.4c1.2-42.5,34.7-76.8,76.8-76.8h134.4c42.1,0,75.6,34.3,76.8,76.8C372.4,380.9,317.9,416,256,416z';
-            const femalePath = 'M256,0C114.6,0,0,114.6,0,256s114.6,256,256,256s256-114.6,256-256S397.4,0,256,0z M256,96c35.3,0,64,28.7,64,64s-28.7,64-64,64s-64-28.7-64-64S220.7,96,256,96z M380.5,355.5c-7.6,18.5-22.3,33.2-40.8,40.8C312.4,407.4,284.9,412,256,412s-56.4-4.6-83.7-15.7c-18.5-7.6-33.2-22.3-40.8-40.8C120.4,328.3,116,300.7,116,272h280C396,300.7,391.6,328.3,380.5,355.5z';
+            const q1Sat = q1.filter(conditionCheck).length;
+            const q2Sat = q2.filter(conditionCheck).length;
+
+            const q1Value = q1.length ? Math.round((q1Sat / q1.length) * 100) : 0;
+            const q2Value = q2.length ? Math.round((q2Sat / q2.length) * 100) : 0;
+
+            const titleText = isInt ? 'SATISFACTION PROGRESSIVE PICTORIAL (Q1 vs Q2)' : 'CONVERSION PROGRESSIVE PICTORIAL (Q1 vs Q2)';
+            const seriesName = isInt ? 'Satisfied Rate' : 'Conversion Rate';
+            const q1Color = isInt ? '#818cf8' : '#fda4af';
+            const q2Color = isInt ? '#34d399' : '#f43f5e';
 
             Highcharts.chart(containerId, {
-                chart: { type: 'pictorial', backgroundColor: 'transparent', height: 320 },
+                chart: {
+                    type: 'pictorial',
+                    backgroundColor: 'transparent',
+                    height: 300,
+                    spacingLeft: 20,
+                    spacingRight: 20
+                },
                 title: {
                     text: titleText,
                     style: { color: '#94a3b8', fontSize: '10px', fontWeight: '900', letterSpacing: '0.25em' },
                     align: 'left'
                 },
                 xAxis: {
-                    categories: ['0-18 Yrs', '19-35 Yrs', '36-50 Yrs', '51+ Yrs'],
+                    categories: ['Quarter 1 (March)', 'Quarter 2 (June/July)'],
                     lineWidth: 0,
-                    labels: { style: { color: '#94a3b8', fontWeight: 'bold', fontSize: '11px' } }
+                    opposite: true,
+                    labels: {
+                        style: {
+                            color: '#94a3b8',
+                            fontWeight: 'bold',
+                            fontSize: '11px',
+                            letterSpacing: '0.05em'
+                        }
+                    }
                 },
-                yAxis: { visible: false },
-                
-                // LEGEND CENTERED IN THE MIDDLE BREAKDOWN
+                yAxis: {
+                    visible: false,
+                    max: 100,
+                    stackShadow: {
+                        enabled: true,
+                        color: '#1e293b'
+                    }
+                },
                 legend: {
-                    enabled: true,
-                    align: 'center',
-                    verticalAlign: 'top',
-                    layout: 'horizontal',
-                    itemStyle: { color: '#94a3b8', fontSize: '10px', fontWeight: 'bold' }
+                    enabled: false
                 },
-                
                 tooltip: {
                     backgroundColor: '#0f172a',
                     borderColor: '#334155',
                     style: { color: '#f8fafc' },
-                    headerFormat: '<span style="font-size: 11px">Age Bracket: <b>{point.key}</b></span><br/>',
-                    pointFormat: '<span style="color:{point.color}">\u25cf</span> {series.name}: <b>{point.y} respondents</b><br/>'
+                    headerFormat: '<span style="font-size: 11px">{point.key}</span><br/>',
+                    pointFormat: '<span style="color:{point.color}">\u25cf</span> ' + seriesName + ': <b>{point.y}%</b><br/>'
                 },
                 credits: { enabled: false },
                 exporting: { enabled: false },
                 plotOptions: {
                     series: {
-                        pointPadding: 0.1,
-                        groupPadding: 0.2,
+                        pointPadding: 0.15,
+                        groupPadding: 0.15,
                         dataLabels: {
                             enabled: true,
-                            format: '{y}',
-                            style: { fontSize: '11px', fontWeight: 'bold', color: '#ffffff', textOutline: 'none' }
-                        }
+                            align: 'center',
+                            format: '{y}%',
+                            style: {
+                                fontSize: '13px',
+                                fontWeight: 'bold',
+                                color: '#ffffff',
+                                textOutline: 'none'
+                            }
+                        },
+                        stacking: 'normal',
+                        paths: [{
+                            definition: 'm 656.59433,740.097 c -0.634,-1.435 -13.566,-15.425 -33.487,-23.292 -4.568,-1.94 -4.545,2.705 -16.944,-34.925 -26.957,-72.647 -5.661,-112.736 -51.135,-200.791 -6.888,-14.322 -9.901,-24.921 -16.16,-50.12 -25.397,-104.478 -6.032,-90.98 -15.87,-135.251 -17.961,-63.049 -50.754,-59.498 -71.782,-59.155 -16.944,0.378 -45.224,-11.699 -52.936,-19.746 -10.555,-11.486 -17.912,-20.548 -11.679,-58.855 0,0 7.037,-12.141 9.078,-34.125 9.284,11.287 24.572,-33.84 16.065,-42.691 -1.745,-1.867 -5.169,-1.236 -6.289,1.015 -1.292,1.484 -1.315,3.695 -2.888,4.964 -2,-9.359 3.289,-28.498 -7.935,-56.968 -5.541,-12.289 -11.235,-15.496 -21.547,-22.44 -8.401,-6.048 -28.842,-7.595 -29.842,-7.717 h -9.461 c -1,0.122 -21.441,1.669 -29.842,7.717 -10.312,6.944 -16.006,10.151 -21.547,22.44 -11.224,28.47 -5.935,47.609 -7.935,56.968 -1.573,-1.269 -1.596,-3.48 -2.888,-4.964 -1.12,-2.251 -4.544,-2.882 -6.289,-1.015 -8.507,8.851 6.781,53.978 16.065,42.691 2.041,21.984 9.078,34.125 9.078,34.125 6.233,38.307 -1.124,47.369 -11.679,58.855 -7.712,8.047 -35.992,20.124 -52.935,19.746 -21.029,-0.343 -53.822,-3.894 -71.782,59.155 -9.838,44.271 9.527,30.773 -15.87,135.251 -6.259,25.199 -9.272,35.798 -16.16,50.12 -45.474004,88.055 -24.178004,128.144 -51.135004,200.791 -12.399,37.63 -12.376,32.985 -16.944,34.925 -19.921,7.867 -32.853,21.857 -33.487,23.292 -8.923,20.454 -23.3280004,27.412 -19.92100038,33.844 0.89599998,1.702 3.31799998,2.588 4.94399998,1.381 5.1890004,0.91 12.7380004,-4.808 16.1270004,-8.599 4.102,-4.706 3.375,-7.457 11.332,-13.86 1.824,2.047 -2.155,20.335 -3.12,23.398 -4.877,14.729 -26.5670004,49.619 -17.595,54.417 0.945,0.4 2.227,0.955 3.073,0.089 1.553,-1.53 3.53,-2.604 4.841,-4.372 8.025,-10.218 17.566,-34.36 24.059,-39.238 3.279,0.224 1.596,2.346 -4.475,22.532 -3.673,13.084 -5.142,19.941 -5.142,19.941 -10.126,30.466 6.229,25.716 11.501,6.808 0.448,-1.537 9.722,-26.912 10.129,-28.16 1.241,-3.291 4.602,-17.806 8.801,-14.872 0.646,2.469 -0.335,3.044 -3.536,31.521 -2.6,21.813 -3.236,8.789 -2.713,26.425 0.079,2.164 4.439,3.257 6.282,2.115 10.539,-9.723 12.692,-57.611 18.074,-61.022 3.669,4.293 4.272,33.754 5.982,39.221 2.652,9.705 7.446,4.802 7.981,3.239 3.825004,-9.324 -0.19,-30.536 0.628,-45.388 0,0 4.369004,-14.53 7.198004,-38.676 4.176,-45.514 -17.861004,13.267 48.59,-167.185 0,0 5.299,-10.218 13.794,-30.791 9.81,-21.31 5.988,-35.652 19.766,-73.451 0.361,-1 16.239,-47.758 24.363,-68.15 45.673,232.645 -9.743,77.068 -28.904,331.531 -5.708,105.042 1.862,76.707 18.19,223.544 31.719,289.304 -15.087,130.161 35.652,384.312 10.99,51.495 9.837,44.86 11.854,56.284 2.28,21.363 -1.788,21.528 -1.679,31.313 -0.699,24.031 5.964,8.574 -1.712,52.53 -4.993,24.181 -4.913,9.214 -7.677,37.417 -3.463,13.977 -13.912,52.732 0.856,52.45 1.286,7.64 5.541,9.156 9.756,6.712 -0.684,2.455 1.381,4.293 2.766,6.011 ' +
+                                '4.813,1.322 4.76,1.029 6.828,-0.555 1.495,5.791 5.173,5.742 6.748,6.16 4.768,1.476 5.904,-11.237 6.781,-16.16 0.856,-0.046 1.705,-0.096 2.551,-0.129 -1.072,3.151 -7.161,15.833 2.634,16.835 7.651,1.238 8.542,0.168 12.727,-3.791 6.992,-7.01 5.41,-8.94 6.623,-20.685 0.191,-2.384 5.685,-6.58 0.872,-37.642 -1.855,-15.952 -0.832,2.69 0.304,-35.715 0.371,-16.594 5.685,-19.576 6.408,-31.349 -6.493,-27.396 -1.465,-14.55 -4.045,-30.51 -6.145,-34.313 -7.105,-27.255 0.575,-107.316 6.987,-65.839 14.147,-68.677 7.72,-136.864 -14.296,-110.15 -0.224,-68.945 1.451,-126.216 1.503,-67.36 -4.198,-108.808 3.103,-168.203 4.314,-34.735 12.351,-68.835 12.215,-90.227 2.948,-3.639 4.984,-7.885 7.168,-11.993 3.172,-6.203 2.655,-0.513 2.627,-35.675 1.424,-0.218 2.885,-0.281 4.27,-0.677 0.162,-0.334 0.307,-0.661 0.436,-0.985 0.007,0.007 0.014,0.015 0.022,0.023 0.008,-0.008 0.015,-0.016 0.022,-0.023 0.129,0.324 0.274,0.651 0.436,0.985 1.385,0.396 2.846,0.459 4.27,0.677 -0.028,35.162 -0.545,29.472 2.627,35.675 2.184,4.108 4.22,8.354 7.168,11.993 -0.136,21.392 7.901,55.493 12.215,90.227 7.301,59.394 1.6,100.842 3.103,168.203 1.675,57.27 15.747,16.066 1.451,126.216 -6.427,68.186 0.733,71.025 7.72,136.864 7.68,80.061 6.72,73.003 0.575,107.316 -2.58,15.96 2.448,3.114 -4.045,30.51 0.723,11.773 6.037,14.755 6.408,31.349 1.136,38.405 2.159,19.763 0.304,35.715 -4.813,31.062 0.681,35.258 0.872,37.642 1.213,11.745 -0.369,13.675 6.623,20.685 4.185,3.959 5.076,5.029 12.727,3.791 9.795,-1.002 3.706,-13.684 2.634,-16.835 0.846,0.033 1.695,0.083 2.551,0.129 0.877,4.923 2.013,17.636 6.781,16.16 1.575,-0.418 5.253,-0.369 6.748,-6.16 2.068,1.584 2.015,1.877 6.828,0.555 1.385,-1.718 3.45,-3.556 2.766,-6.011 4.215,2.444 8.47,0.928 9.756,-6.712 14.768,0.282 4.319,-38.473 0.856,-52.45 -2.764,-28.203 -2.684,-13.236 -7.677,-37.417 -7.676,-43.956 -1.013,-28.499 -1.712,-52.53 0.109,-9.785 -3.959,-9.95 -1.679,-31.313 2.017,-11.424 0.864,-4.789 11.854,-56.284 50.739,-254.151 3.933,-95.007 35.652,-384.312 16.328,-146.837 23.898,-118.502 18.19,-223.544 -19.161,-254.463 -74.576,-98.886 -28.904,-331.531 8.124,20.392 24.002,67.15 24.363,68.15 13.778,37.8 9.956,52.142 19.766,73.451 8.495,20.573 13.794,30.791 13.794,30.791 66.451,180.451 44.414,121.671 48.59,167.185 2.829,24.146 7.198,38.676 7.198,38.676 0.818,14.852 -3.197,36.064 0.628,45.388 0.535,1.563 5.329,6.466 7.981,-3.239 1.71,-5.467 2.313,-34.928 5.982,-39.221 5.382,3.411 7.535,51.3 18.074,61.022 1.843,1.142 6.203,0.049 6.282,-2.115 0.523,-17.636 -0.113,-4.612 -2.713,-26.425 -3.201,-28.477 -4.182,-29.052 -3.536,-31.521 4.199,-2.934 7.56,11.581 8.801,14.872 0.407,1.248 9.681,26.623 10.129,28.16 5.272,18.908 21.627,23.658 11.501,-6.808 0,0 -1.469,-6.857 -5.142,-19.941 -6.071,-20.186 -7.754,-22.308 -4.475,-22.532 6.493,4.878 16.034,29.02 24.059,39.238 1.311,1.768 3.288,2.842 4.841,4.372 0.846,0.866 2.128,0.311 3.073,-0.089 8.972,-4.798 -12.718,-39.688 -17.595,-54.417 -0.965,-3.063 -4.944,-21.351 -3.12,-23.398 7.957,6.403 7.23,9.154 11.332,13.86 3.389,3.791 10.938,9.509 16.127,8.599 1.626,1.207 4.048,0.321 4.944,-1.381 3.403,-6.432 -11.002,-13.39 -19.925,-33.844 z'
+                        }]
                     }
                 },
                 series: [{
-                    name: 'Men',
-                    data: maleData,
-                    color: '#38bdf8',
-                    paths: [{ definition: malePath }]
-                }, {
-                    name: 'Women',
-                    data: femaleData,
-                    color: '#f472b6',
-                    paths: [{ definition: femalePath }]
+                    name: seriesName,
+                    data: [
+                        { name: 'Quarter 1', y: q1Value, color: q1Color },
+                        { name: 'Quarter 2', y: q2Value, color: q2Color }
+                    ]
                 }]
             });
         }
@@ -341,7 +383,7 @@
             const q1Sent = getSentimentSeries(q1), q2Sent = getSentimentSeries(q2);
             Highcharts.chart('intSentimentChart', Highcharts.merge(darkThemeBase, {
                 chart: { type: 'pie' }, title: { text: 'CROSS-QUARTER VOLUME SPREAD' },
-                plotOptions: { pie: { innerSize: '60%', showInLegend: true } },
+                plotOptions: { pie: { innerSize: '60%', dataLabels: { enabled: false }, showInLegend: true } },
                 series: [{ name: 'Total Volume', data: [{ name: 'Q1 Pos', y: q1Sent[0], color: '#312e81' }, { name: 'Q1 Crit', y: q1Sent[1], color: '#4c1d95' }, { name: 'Q2 Pos', y: q2Sent[0], color: '#10b981' }, { name: 'Q2 Crit', y: q2Sent[1], color: '#f43f5e' }] }]
             }));
         }
@@ -358,7 +400,7 @@
             const q1Yes = q1.filter(s => s.has_availed_recently).length, q2Yes = q2.filter(s => s.has_availed_recently).length;
             Highcharts.chart('extBalanceChart', Highcharts.merge(darkThemeBase, {
                 chart: { type: 'pie' }, title: { text: 'CONVERSION VARIATION RATIOS' },
-                plotOptions: { pie: { innerSize: '70%', showInLegend: true } },
+                plotOptions: { pie: { innerSize: '70%', dataLabels: { enabled: false }, showInLegend: true } },
                 series: [{ name: 'Respondents', data: [{ name: 'Q1 Engaged', y: q1Yes, color: '#881337' }, { name: 'Q1 Passive', y: q1.length - q1Yes, color: '#334155' }, { name: 'Q2 Engaged', y: q2Yes, color: '#e11d48' }, { name: 'Q2 Passive', y: q2.length - q2Yes, color: '#475569' }] }]
             }));
         }
