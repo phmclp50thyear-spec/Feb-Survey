@@ -9,6 +9,7 @@
     
     <!-- Core Highcharts + Dependent Modules -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
+    <script src="https://code.highcharts.com/highcharts-more.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
@@ -185,35 +186,6 @@
             };
         }(Highcharts));
 
-        // Custom Highcharts Force Stack Column Plugin
-        (function (H) {
-            H.addEvent(H.seriesTypes.column, 'afterColumnTranslate', function () {
-                const series = this, options = series.options, topMargin = options.topMargin || 0, bottomMargin = options.bottomMargin || 0, idx = series.index;
-                if (options.headSize) {
-                    series.points.forEach(function (point) {
-                        const shapeArgs = point.shapeArgs, w = shapeArgs.width, h = shapeArgs.height, x = shapeArgs.x, y = shapeArgs.y,
-                            cutLeft = idx !== 0, cutRight = point.stackY !== point.y || !cutLeft;
-                        let len = options.headSize;
-                        if (point.y < 0) len *= -1;
-                        point.dlBox = point.shapeArgs;
-                        point.shapeType = 'path';
-                        point.shapeArgs = {
-                            d: [
-                                ['M', x, y + topMargin],
-                                ['L', x + w / 2, y + topMargin + (cutRight ? len : 0)],
-                                ['L', x + w, y + topMargin],
-                                ['L', x + w, y + h],
-                                ['L', x + w / 2, y + h + bottomMargin + (cutLeft ? len : 0)],
-                                ['L', x, y + h + bottomMargin],
-                                ['L', x, y],
-                                ['Z']
-                            ]
-                        };
-                    });
-                }
-            });
-        }(Highcharts));
-
         const darkThemeBase = {
             chart: { backgroundColor: '#1e293b', style: { fontFamily: 'Inter, sans-serif' } },
             title: { style: { color: '#94a3b8', fontSize: '10px', fontWeight: '900', letterSpacing: '0.25em' }, align: 'left' },
@@ -303,12 +275,12 @@
             Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
             if (isInt) {
-                renderForceStackedGenderChart('intDemoChartQ1', q1, 'GENDER & AGE BRACKET MATRIX (Q1 MARCH)');
-                renderForceStackedGenderChart('intDemoChartQ2', q2, 'GENDER & AGE BRACKET MATRIX (Q2 JUN/JUL)');
+                renderSpiderwebChart('intDemoChartQ1', q1, 'GENDER & AGE BRACKET MATRIX (Q1 MARCH)');
+                renderSpiderwebChart('intDemoChartQ2', q2, 'GENDER & AGE BRACKET MATRIX (Q2 JUN/JUL)');
                 renderInternalStructuralCharts(q1, q2); 
             } else {
-                renderForceStackedGenderChart('extDemoChartQ1', q1, 'MARKET MATRIX (Q1 MARCH)');
-                renderForceStackedGenderChart('extDemoChartQ2', q2, 'MARKET MATRIX (Q2 JUN/JUL)');
+                renderSpiderwebChart('extDemoChartQ1', q1, 'MARKET MATRIX (Q1 MARCH)');
+                renderSpiderwebChart('extDemoChartQ2', q2, 'MARKET MATRIX (Q2 JUN/JUL)');
                 renderExternalStructuralCharts(q1, q2);
             }
         }
@@ -334,114 +306,22 @@
             };
         }
 
-        function renderForceStackedGenderChart(containerId, dataset, titleText) {
-            const percentages = calculateAgeBracketsByGender(dataset);
-            const brackets = ['0-19', '20-39', '40-59', '60-79', '80+'];
+        function renderSpiderwebChart(containerId, dataset, titleText) {
+            const data = calculateAgeBracketsByGender(dataset);
+            const categories = ['0-19', '20-39', '40-59', '60-79', '80+'];
 
-            const lastMaleIdx = percentages.male.reduce((last, val, idx) => val > 0 ? idx : last, -1);
-            const lastFemaleIdx = percentages.female.reduce((last, val, idx) => val > 0 ? idx : last, -1);
-
-            const femaleColors = ['#ff1493', '#e0115f', '#c71585', '#b01140', '#800020'];
-            const maleColors = ['#00bfff', '#1e90ff', '#4169e1', '#0047ab', '#000080'];
-
-            let seriesConfig = [];
-
-            // 1. Female series segments (Shifted completely above the bar container)
-            brackets.forEach((range, idx) => {
-                let pct = percentages.female[idx];
-                if (pct > 0) {
-                    seriesConfig.push({
-                        name: `Female ${range}`,
-                        data: [-pct],
-                        color: femaleColors[idx],
-                        className: 'glow-pink',
-                        dataLabels: {
-                            enabled: true, useHTML: true,
-                            align: 'center', 
-                            y: -42, 
-                            crop: false, overflow: 'allow',
-                            style: { color: '#ffffff', fontSize: '9px', fontWeight: '800' },
-                            formatter: function() {
-                                let icon = (idx === lastFemaleIdx) ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ff1493" stroke-width="3" style="display:inline-block; vertical-align:middle; margin-right:4px;"><circle cx="12" cy="8" r="5"/><line x1="12" y1="13" x2="12" y2="21"/><line x1="8" y1="17" x2="16" y2="17"/></svg>` : '';
-                                return `
-                                    <div style="display: flex; flex-direction: column; align-items: center; font-family: monospace; position: relative; padding-bottom: 12px;">
-                                        <span style="color: #ff1493; white-space: nowrap; display: flex; align-items: center;">${icon}${range} (${Math.abs(this.y)}%)</span>
-                                        <div style="position:absolute; bottom:0; left:50%; transform:translateX(-50%); width:1px; height:16px; background:#475569;"></div>
-                                    </div>
-                                `;
-                            }
-                        }
-                    });
-                }
-            });
-
-            // 2. Male series segments (Shifted completely below the bar container)
-            brackets.forEach((range, idx) => {
-                let pct = percentages.male[idx];
-                if (pct > 0) {
-                    seriesConfig.push({
-                        name: `Male ${range}`,
-                        data: [pct],
-                        color: maleColors[idx],
-                        className: 'glow-blue',
-                        dataLabels: {
-                            enabled: true, useHTML: true,
-                            align: 'center', 
-                            y: 42, 
-                            crop: false, overflow: 'allow',
-                            style: { color: '#ffffff', fontSize: '9px', fontWeight: '800' },
-                            formatter: function() {
-                                let icon = (idx === lastMaleIdx) ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#00bfff" stroke-width="3" style="display:inline-block; vertical-align:middle; margin-left:4px;"><circle cx="9" cy="15" r="5"/><polyline points="16 3 21 3 21 8"/><line x1="14" y1="10" x2="21" y2="3"/></svg>` : '';
-                                return `
-                                    <div style="display: flex; flex-direction: column; align-items: center; font-family: monospace; position: relative; padding-top: 12px;">
-                                        <div style="position:absolute; top:0; left:50%; transform:translateX(-50%); width:1px; height:16px; background:#475569;"></div>
-                                        <span style="color: #00bfff; white-space: nowrap; display: flex; align-items: center;">${range} (${this.y}%)${icon}</span>
-                                    </div>
-                                `;
-                            }
-                        }
-                    });
-                }
-            });
-
-            Highcharts.chart(containerId, {
-                chart: { 
-                    type: 'bar', 
-                    height: 240, 
-                    backgroundColor: '#1e293b', 
-                    spacingLeft: 50, 
-                    spacingRight: 50,
-                    marginTop: 60,
-                    marginBottom: 60
-                },
-                title: { 
-                    text: titleText, 
-                    style: { color: '#64748b', fontSize: '10px', fontWeight: '900', letterSpacing: '0.2em' },
-                    align: 'left'
-                },
-                plotOptions: {
-                    bar: {
-                        headSize: 7, 
-                        stacking: 'normal',
-                        borderWidth: 0,
-                        pointPadding: 0.25,
-                        dataLabels: {
-                            crop: false,
-                            overflow: 'allow'
-                        }
-                    }
-                },
-                tooltip: {
-                    backgroundColor: '#0f172a', borderColor: '#334155', style: { color: '#f8fafc' },
-                    headerFormat: '', pointFormat: '<span style="color:{point.color}">\u25cf</span> {series.name}: <b>{point.percentage:.0f}%</b>'
-                },
-                yAxis: {
-                    reversedStacks: true, opposite: true, labels: { enabled: false }, gridLineColor: 'transparent', title: '',
-                    startOnTick: false, endOnTick: false
-                },
-                xAxis: { visible: false }, legend: { enabled: false }, credits: { enabled: false }, exporting: { enabled: false },
-                series: seriesConfig
-            });
+            Highcharts.chart(containerId, Highcharts.merge(darkThemeBase, {
+                chart: { polar: true, type: 'area' },
+                title: { text: titleText },
+                pane: { size: '70%' },
+                xAxis: { categories: categories, tickmarkPlacement: 'on', lineWidth: 0, labels: { style: { color: '#64748b' } } },
+                yAxis: { gridLineInterpolation: 'polygon', lineWidth: 0, min: 0, max: 50, labels: { enabled: false } },
+                tooltip: { shared: true, pointFormat: '<span style="color:{series.color}">{series.name}: <b>{point.y}%</b><br/>' },
+                series: [
+                    { name: 'Female', data: data.female, pointPlacement: 'on', color: '#ff1493', fillOpacity: 0.3 },
+                    { name: 'Male', data: data.male, pointPlacement: 'on', color: '#00bfff', fillOpacity: 0.3 }
+                ]
+            }));
         }
 
         function renderInternalStructuralCharts(q1, q2) {
