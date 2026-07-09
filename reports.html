@@ -195,7 +195,9 @@
                                             plotOptions: {
                                                 pie: {
                                                     innerSize: '50%',
-                                                    borderRadius: 6
+                                                    borderRadius: 6,
+                                                    center: ['50%', '42%'], // Shifting target center point up to prevent lower ledger overlap
+                                                    size: '75%' // Adjusts maximum radius boundary space
                                                 }
                                             }
                                         });
@@ -222,10 +224,10 @@
             xAxis: { gridLineColor: '#334155', lineColor: '#334155', tickColor: '#334155', labels: { style: { color: '#94a3b8' } } },
             yAxis: { gridLineColor: '#334155', lineColor: '#334155', title: { text: null }, labels: { style: { color: '#94a3b8' } } },
             legend: { enabled: false },
-            exporting: { enabled: false }, // Completely handles dropping the chart context menu
+            exporting: { enabled: false },
             tooltip: {
                 headerFormat: '',
-                pointFormat: '<span style="color:{point.color}">\u25cf</span> {point.name}: <b>{point.percentage:.1f}%</b>'
+                pointFormat: '<span style="color:{point.color}">\u25cf</span> {point.name}: <b>{point.percentage:.0f}%</b>'
             },
             credits: { enabled: false }, 
             accessibility: { point: { valueSuffix: '%' } }
@@ -299,11 +301,12 @@
                         borderWidth: 2,
                         borderColor: '#1e293b',
                         cursor: 'pointer',
+                        center: ['50%', '42%'], // Initial center positioning configuration matching update block
+                        size: '75%',
                         dataLabels: {
                             enabled: true,
-                            // Moves context labels outside with a clean connection array
-                            distance: 25, 
-                            format: '<b>{point.name}</b><br>{point.percentage:.1f}%',
+                            distance: 20, 
+                            format: '<b>{point.name}</b><br>{point.percentage:.0f}%', // Strips trailing .0 decimals
                             style: { color: '#94a3b8', fontSize: '11px', fontWeight: '700', textOutline: 'none' },
                             connectorWidth: 1.5,
                             connectorColor: '#334155'
