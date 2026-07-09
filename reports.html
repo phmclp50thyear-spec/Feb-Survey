@@ -31,7 +31,7 @@
         .tab-content.active { display: block; }
         .highcharts-container { border-radius: 1.5rem !important; overflow: hidden; }
         
-        /* Neon Glow CSS Filters */
+        /* Neon Glow Structural Filters */
         .glow-blue { filter: drop-shadow(0px 0px 8px rgba(0, 191, 255, 0.8)); }
         .glow-pink { filter: drop-shadow(0px 0px 8px rgba(255, 20, 147, 0.8)); }
     </style>
@@ -92,7 +92,6 @@
 
         <!-- TRI-ANIMATED SATURATION MATRIX SECTION -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- OVERALL TRACK -->
             <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl relative min-h-[340px]">
                 <div id="satChartOverall" class="w-full h-full"></div>
                 <div class="absolute bottom-4 right-6 bg-transparent z-10">
@@ -102,7 +101,6 @@
                     </table>
                 </div>
             </div>
-            <!-- Q1 TRACK -->
             <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl relative min-h-[340px]">
                 <div id="satChartQ1" class="w-full h-full"></div>
                 <div class="absolute bottom-4 right-6 bg-transparent z-10">
@@ -112,7 +110,6 @@
                     </table>
                 </div>
             </div>
-            <!-- Q2 TRACK -->
             <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl relative min-h-[340px]">
                 <div id="satChartQ2" class="w-full h-full"></div>
                 <div class="absolute bottom-4 right-6 bg-transparent z-10">
@@ -127,9 +124,10 @@
         <!-- ==================== INTERNAL DATA VIEW ==================== -->
         <div id="section-internal" class="tab-content active space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- REPLACED WITH FORCE STACKED MATRIX CHART -->
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex flex-col justify-between min-h-[220px]">
-                     <div id="intDemoChart" class="w-full h-[170px]"></div>
+                <!-- SEGMENTED SPLIT: Q1 AND Q2 TWIN FORCE-STACK MATRICES -->
+                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex flex-col gap-4 min-h-[360px]">
+                     <div id="intDemoChartQ1" class="w-full h-[160px]"></div>
+                     <div id="intDemoChartQ2" class="w-full h-[160px] border-t border-slate-800/60 pt-2"></div>
                 </div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intOccChart"></div>
             </div>
@@ -142,9 +140,10 @@
         <!-- ==================== EXTERNAL MARKET VIEW ==================== -->
         <div id="section-external" class="tab-content space-y-8">
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- REPLACED WITH FORCE STACKED MATRIX CHART -->
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex flex-col justify-between min-h-[220px]">
-                     <div id="extDemoChart" class="w-full h-[170px]"></div>
+                <!-- SEGMENTED SPLIT: Q1 AND Q2 TWIN FORCE-STACK MATRICES -->
+                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 flex flex-col gap-4 min-h-[360px]">
+                     <div id="extDemoChartQ1" class="w-full h-[160px]"></div>
+                     <div id="extDemoChartQ2" class="w-full h-[160px] border-t border-slate-800/60 pt-2"></div>
                 </div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extOccChart"></div>
             </div>
@@ -166,7 +165,7 @@
 
         let cachedInternal = { q1: [], q2: [] }, cachedExternal = { q1: [], q2: [] };
 
-        // 1. ORIGINAL PIE FAN ANIMATION PLUGIN
+        // Pie Fan Animations Plugin
         (function (H) {
             H.seriesTypes.pie.prototype.animate = function (init) {
                 const series = this, chart = series.chart, points = series.points, { animation } = series.options, { startAngleRad } = series;
@@ -190,7 +189,7 @@
             };
         }(Highcharts));
 
-        // 2. HIGHCHARTS PLUGIN FOR FORCE STACKED COLUMN ARROWS
+        // Custom Highcharts Force Stack Column Plugin
         (function (H) {
             H.addEvent(H.seriesTypes.column, 'afterColumnTranslate', function () {
                 const series = this, options = series.options, topMargin = options.topMargin || 0, bottomMargin = options.bottomMargin || 0, idx = series.index;
@@ -219,20 +218,14 @@
             });
         }(Highcharts));
 
-        // Dark Theme Specifications Configuration
         const darkThemeBase = {
             chart: { backgroundColor: '#1e293b', style: { fontFamily: 'Inter, sans-serif' } },
             title: { style: { color: '#94a3b8', fontSize: '10px', fontWeight: '900', letterSpacing: '0.25em' }, align: 'left' },
             xAxis: { gridLineColor: '#334155', lineColor: '#334155', tickColor: '#334155', labels: { style: { color: '#94a3b8' } } },
             yAxis: { gridLineColor: '#334155', lineColor: '#334155', title: { text: null }, labels: { style: { color: '#94a3b8' } } },
-            legend: { enabled: false },
-            exporting: { enabled: false },
-            tooltip: {
-                headerFormat: '',
-                pointFormat: '<span style="color:{point.color}">\u25cf</span> {point.name}: <b>{point.percentage:.0f}%</b>'
-            },
-            credits: { enabled: false }, 
-            accessibility: { point: { valueSuffix: '%' } }
+            legend: { enabled: false }, exporting: { enabled: false },
+            tooltip: { headerFormat: '', pointFormat: '<span style="color:{point.color}">\u25cf</span> {point.name}: <b>{point.percentage:.0f}%</b>' },
+            credits: { enabled: false }, accessibility: { point: { valueSuffix: '%' } }
         };
 
         window.onload = async () => {
@@ -276,7 +269,6 @@
         }
 
         function renderActiveDataset(q1, q2, mode) {
-            const combinedPool = [...q1, ...q2];
             document.getElementById('txt-total-pool').innerText = q1.length + q2.length;
             document.getElementById('txt-q1-count').innerText = q1.length;
             document.getElementById('txt-q2-count').innerText = q2.length;
@@ -310,102 +302,131 @@
                 series: [{ type: 'pie', enableMouseTracking: false, animation: { duration: 1600 }, colorByPoint: true, data: data }]
             });
 
-            const satisfiedColor = '#22c55e';
-            const unsatisfiedColor = '#ef4444';
-
-            Highcharts.chart('satChartOverall', basePieConf('OVERALL SATURATION INDEX', [
-                { name: 'Satisfied', y: totSat, color: satisfiedColor }, { name: 'Unsatisfied', y: totUnsat, color: unsatisfiedColor }
-            ]));
-            Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH BOUNDARY', [
-                { name: 'Satisfied', y: q1Sat, color: satisfiedColor }, { name: 'Unsatisfied', y: q1Unsat, color: unsatisfiedColor }
-            ]));
-            Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [
-                { name: 'Satisfied', y: q2Sat, color: satisfiedColor }, { name: 'Unsatisfied', y: q2Unsat, color: unsatisfiedColor }
-            ]));
+            Highcharts.chart('satChartOverall', basePieConf('OVERALL SATURATION INDEX', [{ name: 'Satisfied', y: totSat, color: '#22c55e' }, { name: 'Unsatisfied', y: totUnsat, color: '#ef4444' }]));
+            Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH BOUNDARY', [{ name: 'Satisfied', y: q1Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q1Unsat, color: '#ef4444' }]));
+            Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
             if (isInt) {
-                renderForceStackedGenderChart('intDemoChart', combinedPool);
+                renderForceStackedGenderChart('intDemoChartQ1', q1, 'GENDER & AGE BRACKET MATRIX (Q1 MARCH)');
+                renderForceStackedGenderChart('intDemoChartQ2', q2, 'GENDER & AGE BRACKET MATRIX (Q2 JUN/JUL)');
                 renderInternalStructuralCharts(q1, q2); 
             } else {
-                renderForceStackedGenderChart('extDemoChart', combinedPool);
+                renderForceStackedGenderChart('extDemoChartQ1', q1, 'MARKET MATRIX (Q1 MARCH)');
+                renderForceStackedGenderChart('extDemoChartQ2', q2, 'MARKET MATRIX (Q2 JUN/JUL)');
                 renderExternalStructuralCharts(q1, q2);
             }
         }
 
-        // NEON FORCE STACKED MATRIX ENGINE 
-        function renderForceStackedGenderChart(containerId, dataPool) {
-            let maleCount = dataPool.filter(d => d.gender === 'Male').length;
-            let femaleCount = dataPool.filter(d => d.gender === 'Female').length;
-            let total = maleCount + femaleCount || 1;
+        function calculateAgeBracketsByGender(dataPool) {
+            let totalCount = dataPool.length || 1;
+            let ranges = ['0-19', '20-39', '40-59', '60-79', '80+'];
+            let result = {
+                male: ranges.map(() => 0),
+                female: ranges.map(() => 0)
+            };
 
-            // Translate matrix balances out to an absolute 100% force boundary map
-            let malePct = Math.round((maleCount / total) * 100);
-            let femalePct = 100 - malePct; // Assures absolute sum distribution boundary match
+            dataPool.forEach(item => {
+                let age = item.age || 0;
+                let idx = age <= 19 ? 0 : age <= 39 ? 1 : age <= 59 ? 2 : age <= 79 ? 3 : 4;
+                if (item.gender === 'Male') result.male[idx]++;
+                else result.female[idx]++;
+            });
+
+            // Convert to absolute percentages relative to the total population pool
+            return {
+                male: result.male.map(v => Math.round((v / totalCount) * 100)),
+                female: result.female.map(v => Math.round((v / totalCount) * 100))
+            };
+        }
+
+        // BI-QUARTER NEON SEGMENTATION FACTORY
+        function renderForceStackedGenderChart(containerId, dataset, titleText) {
+            const percentages = calculateAgeBracketsByGender(dataset);
+            const brackets = ['0-19', '20-39', '40-59', '60-79', '80+'];
+
+            // Find the last index that contains a value to attach the outer vector icon safely
+            const lastMaleIdx = percentages.male.reduce((last, val, idx) => val > 0 ? idx : last, -1);
+            const lastFemaleIdx = percentages.female.reduce((last, val, idx) => val > 0 ? idx : last, -1);
+
+            // Shading steps from hot neon down to core deep tinting
+            const femaleColors = ['#ff1493', '#e0115f', '#c71585', '#b01140', '#800020'];
+            const maleColors = ['#00bfff', '#1e90ff', '#4169e1', '#0047ab', '#000080'];
+
+            // Generate structured, directional force stack sets
+            let seriesConfig = [];
+
+            // 1. Female series (Negative values to build leftward force)
+            brackets.forEach((range, idx) => {
+                let pct = percentages.female[idx];
+                if (pct > 0) {
+                    seriesConfig.push({
+                        name: `Female ${range}`,
+                        data: [-pct],
+                        color: femaleColors[idx],
+                        className: 'glow-pink',
+                        dataLabels: {
+                            enabled: true, useHTML: true,
+                            style: { color: '#ffffff', fontSize: '10px', fontWeight: '800' },
+                            formatter: function() {
+                                let icon = (idx === lastFemaleIdx) ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; margin-right:4px;"><circle cx="12" cy="8" r="6"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="9" y1="18" x2="15" y2="18"/></svg>` : '';
+                                return `<div class="text-[#ff1493] glow-pink text-center font-mono">${icon}${range}<br>${Math.abs(this.y)}%</div>`;
+                            }
+                        }
+                    });
+                }
+            });
+
+            // 2. Male series (Positive values to build rightward force)
+            brackets.forEach((range, idx) => {
+                let pct = percentages.male[idx];
+                if (pct > 0) {
+                    seriesConfig.push({
+                        name: `Male ${range}`,
+                        data: [pct],
+                        color: maleColors[idx],
+                        className: 'glow-blue',
+                        dataLabels: {
+                            enabled: true, useHTML: true,
+                            style: { color: '#ffffff', fontSize: '10px', fontWeight: '800' },
+                            formatter: function() {
+                                let icon = (idx === lastMaleIdx) ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="display:inline; margin-left:4px;"><circle cx="10" cy="14" r="6"/><polyline points="15 3 21 3 21 9"/><line x1="15" y1="9" x2="21" y2="3"/></svg>` : '';
+                                return `<div class="text-[#00bfff] glow-blue text-center font-mono">${range}${icon}<br>${this.y}%</div>`;
+                            }
+                        }
+                    });
+                }
+            });
 
             Highcharts.chart(containerId, {
-                chart: { type: 'bar', height: 170, backgroundColor: '#1e293b' },
+                chart: { type: 'bar', height: 140, backgroundColor: '#1e293b' },
                 title: { 
-                    text: 'GENDER AND AGE BRACKET MATRIX', 
-                    style: { color: '#94a3b8', fontSize: '10px', fontWeight: '900', letterSpacing: '0.25em' },
+                    text: titleText, 
+                    style: { color: '#64748b', fontSize: '9px', fontWeight: '900', letterSpacing: '0.2em' },
                     align: 'left'
                 },
                 plotOptions: {
                     bar: {
-                        headSize: 8,
+                        headSize: 7, // Draws cutting line intersections between different brackets
                         stacking: 'normal',
                         borderWidth: 0,
-                        dataLabels: {
-                            enabled: true,
-                            useHTML: true,
-                            style: { color: '#ffffff', fontSize: '12px', fontWeight: '900', textOutline: 'none' },
-                            formatter: function() {
-                                // SVG Vector Injector paths mapping glowing male/female identities cleanly onto the canvas
-                                if (this.series.name === 'Male') {
-                                    return `<div class="flex items-center gap-1.5 text-[#00bfff] glow-blue font-mono" style="margin-top:-8px;">
-                                                <span>${this.y}%</span>
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="14" r="6"/><polyline points="15 3 21 3 21 9"/><line x1="15" y1="9" x2="21" y2="3"/></svg>
-                                            </div>`;
-                                } else {
-                                    return `<div class="flex items-center gap-1.5 text-[#ff1493] glow-pink font-mono" style="margin-top:-8px;">
-                                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><line x1="12" y1="14" x2="12" y2="22"/><line x1="9" y1="18" x2="15" y2="18"/></svg>
-                                                <span>${this.y}%</span>
-                                            </div>`;
-                                }
-                            }
-                        }
+                        pointPadding: 0.1
                     }
                 },
                 tooltip: {
-                    backgroundColor: '#0f172a',
-                    borderColor: '#334155',
-                    style: { color: '#f8fafc' },
-                    headerFormat: '',
-                    pointFormat: '<span style="color:{point.color}">\u25cf</span> {series.name}: <b>{point.y}% Distribution Matrix</b>'
+                    backgroundColor: '#0f172a', borderColor: '#334155', style: { color: '#f8fafc' },
+                    headerFormat: '', pointFormat: '<span style="color:{point.color}">\u25cf</span> {series.name}: <b>{point.percentage:.0f}%</b>'
                 },
                 yAxis: {
-                    reversedStacks: true,
-                    opposite: true,
-                    labels: { enabled: false },
-                    gridLineColor: 'transparent',
-                    title: '',
+                    reversedStacks: true, opposite: true, labels: { enabled: false }, gridLineColor: 'transparent', title: '',
                     stackLabels: {
-                        enabled: true,
-                        verticalAlign: 'top',
-                        y: -5,
-                        style: { color: '#64748b', fontSize: '10px', fontWeight: '800', letterSpacing: '0.1em' },
+                        enabled: true, verticalAlign: 'top', y: -2,
+                        style: { color: '#94a3b8', fontSize: '10px', fontWeight: '900', letterSpacing: '0.05em' },
                         format: 'TOTAL: 100'
                     },
-                    startOnTick: false,
-                    endOnTick: false
+                    startOnTick: false, endOnTick: false
                 },
-                xAxis: { visible: false },
-                legend: { enabled: false },
-                credits: { enabled: false },
-                exporting: { enabled: false },
-                series: [
-                    { name: 'Female', data: [-femalePct], color: '#ff1493', className: 'glow-pink' },
-                    { name: 'Male', data: [malePct], color: '#00bfff', className: 'glow-blue' }
-                ]
+                xAxis: { visible: false }, legend: { enabled: false }, credits: { enabled: false }, exporting: { enabled: false },
+                series: seriesConfig
             });
         }
 
