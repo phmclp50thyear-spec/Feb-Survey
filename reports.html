@@ -121,13 +121,13 @@
             </div>
         </div>
 
-        <!-- COMPACT, HIGH-SCALE PATIENT MATRIX CONTAINER (REDUCED VERTICAL PADDING & HEIGHT) -->
-        <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-5 pt-4 pb-1 shadow-xl space-y-2">
+        <!-- COMPACT PATIENT MATRIX CONTAINER (ADJUSTED FOR FULL-SIZE PIE CHARTS) -->
+        <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-5 shadow-xl space-y-3">
             <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 px-2">📊 Comparative Patient Classification Metrics</h3>
-            <div id="patientTypeMatrixContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[180px]">
-                <div id="ptChartOverall" class="w-full h-[180px]"></div>
-                <div id="ptChartQ1" class="w-full h-[180px]"></div>
-                <div id="ptChartQ2" class="w-full h-[180px]"></div>
+            <div id="patientTypeMatrixContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[220px]">
+                <div id="ptChartOverall" class="w-full h-[220px]"></div>
+                <div id="ptChartQ1" class="w-full h-[220px]"></div>
+                <div id="ptChartQ2" class="w-full h-[220px]"></div>
             </div>
         </div>
 
@@ -216,7 +216,6 @@
                                     series.dataLabelsGroup?.animate({ opacity: 1 }, void 0, function () {
                                         points.forEach(p => { p.opacity = 1; });
                                         series.update({ enableMouseTracking: true }, false);
-                                        chart.update({ plotOptions: { pie: { innerSize: '50%', borderRadius: 6, center: ['50%', '42%'], size: '75%' } } });
                                     });
                                 }
                             });
@@ -315,7 +314,7 @@
             Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH BOUNDARY', [{ name: 'Satisfied', y: q1Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q1Unsat, color: '#ef4444' }]));
             Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
-            // Adjusted metrics for perfect clipping alignment
+            // Full Pie Chart Configurations for Patient Type Distribution
             const combinePool = [...q1, ...q2];
             const buildPtData = (arr) => {
                 const counts = arr.reduce((acc, c) => { 
@@ -325,26 +324,26 @@
                 return Object.keys(counts).map(key => ({ name: key, y: counts[key] }));
             };
 
-            const baseSemiDonutConf = (title, data) => Highcharts.merge(darkThemeBase, {
-                chart: { type: 'pie', margin: [0, 0, 0, 0], spacingTop: 10, spacingBottom: 0 },
-                title: { text: title, margin: 0, y: 15 },
+            const basePatientPieConf = (title, data) => Highcharts.merge(darkThemeBase, {
+                chart: { type: 'pie', margin: [0, 0, 0, 0] },
+                title: { text: title, y: 15 },
                 plotOptions: {
                     pie: {
-                        dataLabels: { 
-                            enabled: true, 
-                            distance: -32, 
-                            format: '<b>{point.name}</b><br>{point.percentage:.0f}%',
-                            style: { fontWeight: '900', color: '#ffffff', textOutline: '2px solid #0f172a', fontSize: '11px' } 
-                        },
-                        startAngle: -90, endAngle: 90, center: ['50%', '100%'], size: '200%', innerSize: '60%'
+                        allowPointSelect: true, borderWidth: 2, borderColor: '#1e293b', cursor: 'pointer',
+                        center: ['50%', '48%'], size: '70%',
+                        dataLabels: {
+                            enabled: true, distance: 12, format: '<b>{point.name}</b><br>{point.percentage:.0f}%',
+                            style: { color: '#94a3b8', fontSize: '10px', fontWeight: '700', textOutline: 'none' },
+                            connectorWidth: 1, connectorColor: '#334155'
+                        }
                     }
                 },
-                series: [{ name: 'Submissions', data: data, colorByPoint: true }]
+                series: [{ name: 'Submissions', data: data, colorByPoint: true, animation: { duration: 1400 } }]
             });
 
-            Highcharts.chart('ptChartOverall', baseSemiDonutConf('OVERALL DISPOSITION SHARE', buildPtData(combinePool)));
-            Highcharts.chart('ptChartQ1', baseSemiDonutConf('Q1 MARCH RATIOS', buildPtData(q1)));
-            Highcharts.chart('ptChartQ2', baseSemiDonutConf('Q2 CURRENT RATIOS', buildPtData(q2)));
+            Highcharts.chart('ptChartOverall', basePatientPieConf('OVERALL DISPOSITION SHARE', buildPtData(combinePool)));
+            Highcharts.chart('ptChartQ1', basePatientPieConf('Q1 MARCH RATIOS', buildPtData(q1)));
+            Highcharts.chart('ptChartQ2', basePatientPieConf('Q2 CURRENT RATIOS', buildPtData(q2)));
 
             if (isInt) {
                 renderDemographicContainerCharts('intQ1GenderPie', 'intQ1MaleAgeBar', 'intQ1FemaleAgeSidebar', q1, 'INTERNAL Q1');
