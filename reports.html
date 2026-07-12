@@ -121,7 +121,7 @@
             </div>
         </div>
 
-        <!-- RE-SCALED PATIENT TYPE CONTAINER FEATURING CLEAN FULL PIE GEOMETRICS (CONTROLLED VIA JS VISIBILITY CONTROLS) -->
+        <!-- RE-SCALED PATIENT TYPE CONTAINER FEATURING CLEAN FULL PIE GEOMETRICS -->
         <div id="patientTypeSection" class="bg-[#1e293b] border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
             <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 px-2">📊 Comparative Patient Classification Metrics</h3>
             <div id="patientTypeMatrixContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[250px]">
@@ -153,13 +153,15 @@
                 </div>
             </div>
 
-            <!-- GEOGRAPHIC, OCCUPATION, & VOLUME TRAFFIC CONTAINER ROWS -->
+            <!-- PRIMARY OBJECTIVES DEPARTMENT COMPARISON CARD -->
+            <div class="w-full bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800">
+                <div id="intObjectiveChart" class="w-full min-h-[380px]"></div>
+            </div>
+
+            <!-- GEOGRAPHIC & OCCUPATION TRACKERS -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intLocChart"></div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intOccupationChart"></div>
-            </div>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intSentimentChart"></div>
             </div>
         </div>
 
@@ -206,12 +208,9 @@
         (function (H) {
             H.seriesTypes.pie.prototype.animate = function (init) {
                 const series = this, chart = series.chart, points = series.points, startAngleRad = series.startAngleRad;
-                
-                // Safely query duration values if custom animations object is missing
                 const rawDuration = series.options.animation && series.options.animation.duration;
                 const duration = rawDuration || 1600; 
 
-                // Targets only the original top 3 saturation indexes for custom donut properties transformation
                 const targetGlowContainers = ['satChartOverall', 'satChartQ1', 'satChartQ2'];
                 const isTargetIndexChart = targetGlowContainers.includes(chart.renderTo.id);
 
@@ -225,8 +224,6 @@
                                     series.dataLabelsGroup?.animate({ opacity: 1 }, void 0, function () {
                                         points.forEach(p => { p.opacity = 1; });
                                         series.update({ enableMouseTracking: true }, false);
-                                        
-                                        // Only structural transformation for the primary top rows
                                         if (isTargetIndexChart) {
                                             chart.update({ plotOptions: { pie: { innerSize: '50%', borderRadius: 6, center: ['50%', '42%'], size: '75%' } } });
                                         }
@@ -281,16 +278,12 @@
                 btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-indigo-600 shadow-md text-white";
                 btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200";
                 lblQ2.className = "text-[9px] font-black text-teal-400 block tracking-widest uppercase";
-                
-                // Show patient data classification layout on Internal Data view
                 if(patientSection) patientSection.style.display = 'block';
                 renderActiveDataset(cachedInternal.q1, cachedInternal.q2, 'internal');
             } else {
                 btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-rose-600 shadow-md text-white";
                 btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200";
                 lblQ2.className = "text-[9px] font-black text-rose-400 block tracking-widest uppercase";
-                
-                // Completely hide patient data metrics component from external market reports
                 if(patientSection) patientSection.style.display = 'none';
                 renderActiveDataset(cachedExternal.q1, cachedExternal.q2, 'external');
             }
@@ -335,7 +328,6 @@
             Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH BOUNDARY', [{ name: 'Satisfied', y: q1Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q1Unsat, color: '#ef4444' }]));
             Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
-            // Only initialize internal-specific charts if currently viewing internal mode
             if (isInt) {
                 const combinePool = [...q1, ...q2];
                 const buildPtData = (arr) => {
@@ -378,7 +370,6 @@
 
         function renderDemographicContainerCharts(genderDiv, maleDiv, femaleDiv, dataPool, viewLabel) {
             const categories = ['0-19', '20-39', '40-59', '60-79', '80+'];
-            
             let maleCount = 0, femaleCount = 0;
             let maleAgeDist = [0, 0, 0, 0, 0], femaleAgeDist = [0, 0, 0, 0, 0];
 
@@ -419,6 +410,35 @@
         }
 
         function renderInternalStructuralCharts(q1, q2) {
+            // New Primary Objective Cross-Quarter Processing Matrix Block
+            const getObjCounts = (arr) => arr.reduce((acc, c) => {
+                if (c.primary_objective) {
+                    acc[c.primary_objective] = (acc[c.primary_objective] || 0) + 1;
+                }
+                return acc;
+            }, {});
+            
+            const q1Objectives = getObjCounts(q1);
+            const q2Objectives = getObjCounts(q2);
+            
+            // Extract and sort distinct departments by combined absolute volume
+            const targetDepartments = Array.from(new Set([...Object.keys(q1Objectives), ...Object.keys(q2Objectives)]))
+                .sort((a, b) => ((q2Objectives[b] || 0) + (q1Objectives[b] || 0)) - ((q2Objectives[a] || 0) + (q1Objectives[a] || 0)));
+
+            Highcharts.chart('intObjectiveChart', Highcharts.merge(darkThemeBase, {
+                chart: { type: 'bar', backgroundColor: '#1e293b' },
+                title: { text: 'DEPARTMENT REVENUE & VISITATION FLOW (PRIMARY OBJECTIVE)', align: 'left' },
+                xAxis: { categories: targetDepartments, title: { text: null } },
+                yAxis: { min: 0, title: { text: 'Total Submissions', align: 'high' }, gridLineColor: '#334155' },
+                tooltip: { shared: true, headerFormat: '<span style="font-size:10px; font-weight:700">{point.key}</span><br/>' },
+                plotOptions: { bar: { dataLabels: { enabled: true, style: { color: '#cbd5e1', textOutline: 'none' } } } },
+                legend: { enabled: true, itemStyle: { color: '#94a3b8', fontSize: '10px' }, align: 'right', verticalAlign: 'top', layout: 'horizontal' },
+                series: [
+                    { name: 'Q1 March', data: targetDepartments.map(d => q1Objectives[d] || 0), color: '#4f46e5' },
+                    { name: 'Q2 Current', data: targetDepartments.map(d => q2Objectives[d] || 0), color: '#06b6d4' }
+                ]
+            }));
+
             const processLoc = (arr) => arr.reduce((acc, c) => { acc[c.location] = (acc[c.location] || 0) + 1; return acc; }, {});
             const q1Loc = processLoc(q1), q2Loc = processLoc(q2);
             const allLocs = Array.from(new Set([...Object.keys(q1Loc), ...Object.keys(q2Loc)]));
@@ -434,14 +454,6 @@
                 chart: { type: 'bar', backgroundColor: '#1e293b' }, title: { text: 'TOP DISCOVERED OCCUPATIONS', align: 'left' },
                 xAxis: { categories: sortedOccs },
                 series: [{ name: 'Responses Count', data: sortedOccs.map(o => occCounts[o]), color: '#a855f7' }]
-            }));
-
-            const getSentimentSeries = (arr) => [arr.filter(s => s.experience_rating === 'Positive').length, arr.filter(s => s.experience_rating !== 'Positive').length];
-            const q1Sent = getSentimentSeries(q1), q2Sent = getSentimentSeries(q2);
-            Highcharts.chart('intSentimentChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'pie', backgroundColor: '#1e293b' }, title: { text: 'CROSS-QUARTER VOLUME SPREAD', align: 'left' },
-                plotOptions: { pie: { innerSize: '60%', dataLabels: { enabled: false }, showInLegend: true } },
-                series: [{ name: 'Total Volume', data: [{ name: 'Q1 Pos', y: q1Sent[0], color: '#312e81' }, { name: 'Q1 Crit', y: q1Sent[1], color: '#4c1d95' }, { name: 'Q2 Pos', y: q2Sent[0], color: '#10b981' }, { name: 'Q2 Crit', y: q2Sent[1], color: '#f43f5e' }] }]
             }));
         }
 
