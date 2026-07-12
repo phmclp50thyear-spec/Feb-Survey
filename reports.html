@@ -121,13 +121,13 @@
             </div>
         </div>
 
-        <!-- CONSOLIDATED HIGH-SCALE PATIENT MATRIX CONTAINER -->
-        <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+        <!-- COMPACT, HIGH-SCALE PATIENT MATRIX CONTAINER (REDUCED VERTICAL PADDING & HEIGHT) -->
+        <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-5 pt-4 pb-1 shadow-xl space-y-2">
             <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 px-2">📊 Comparative Patient Classification Metrics</h3>
-            <div id="patientTypeMatrixContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[320px]">
-                <div id="ptChartOverall" class="w-full h-full"></div>
-                <div id="ptChartQ1" class="w-full h-full"></div>
-                <div id="ptChartQ2" class="w-full h-full"></div>
+            <div id="patientTypeMatrixContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[180px]">
+                <div id="ptChartOverall" class="w-full h-[180px]"></div>
+                <div id="ptChartQ1" class="w-full h-[180px]"></div>
+                <div id="ptChartQ2" class="w-full h-[180px]"></div>
             </div>
         </div>
 
@@ -315,7 +315,7 @@
             Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH BOUNDARY', [{ name: 'Satisfied', y: q1Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q1Unsat, color: '#ef4444' }]));
             Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
-            // Optimized Scale Configurations for the consolidated Semi-Donuts
+            // Adjusted metrics for perfect clipping alignment
             const combinePool = [...q1, ...q2];
             const buildPtData = (arr) => {
                 const counts = arr.reduce((acc, c) => { 
@@ -326,17 +326,17 @@
             };
 
             const baseSemiDonutConf = (title, data) => Highcharts.merge(darkThemeBase, {
-                chart: { type: 'pie', plotBackgroundColor: null, plotBorderWidth: 0, plotShadow: false },
-                title: { text: title },
+                chart: { type: 'pie', margin: [0, 0, 0, 0], spacingTop: 10, spacingBottom: 0 },
+                title: { text: title, margin: 0, y: 15 },
                 plotOptions: {
                     pie: {
                         dataLabels: { 
                             enabled: true, 
-                            distance: -28, // Pushes text deeper into center for high visibility
+                            distance: -32, 
                             format: '<b>{point.name}</b><br>{point.percentage:.0f}%',
-                            style: { fontWeight: '900', color: '#ffffff', textOutline: '2px solid #0f172a', fontSize: '12px' } 
+                            style: { fontWeight: '900', color: '#ffffff', textOutline: '2px solid #0f172a', fontSize: '11px' } 
                         },
-                        startAngle: -90, endAngle: 90, center: ['50%', '100%'], size: '145%', innerSize: '55%'
+                        startAngle: -90, endAngle: 90, center: ['50%', '100%'], size: '200%', innerSize: '60%'
                     }
                 },
                 series: [{ name: 'Submissions', data: data, colorByPoint: true }]
