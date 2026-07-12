@@ -143,8 +143,13 @@
                 </div>
             </div>
 
+            <!-- GEOGRAPHIC, PATIENT TYPE, OCCUPATION, & VOLUME TRAFFIC CONTAINER ROWS -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intLocChart"></div>
+                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intPatientTypeChart"></div>
+            </div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intOccupationChart"></div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intSentimentChart"></div>
             </div>
         </div>
@@ -173,7 +178,6 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extLocChart"></div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extBalanceChart"></div>
             </div>
         </div>
 
@@ -302,12 +306,10 @@
             Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
             if (isInt) {
-                // Separate Q1 and Q2 rendering for Internal View
                 renderDemographicContainerCharts('intQ1GenderPie', 'intQ1MaleAgeBar', 'intQ1FemaleAgeSidebar', q1, 'INTERNAL Q1');
                 renderDemographicContainerCharts('intQ2GenderPie', 'intQ2MaleAgeBar', 'intQ2FemaleAgeSidebar', q2, 'INTERNAL Q2');
                 renderInternalStructuralCharts(q1, q2); 
             } else {
-                // Separate Q1 and Q2 rendering for External View
                 renderDemographicContainerCharts('extQ1GenderPie', 'extQ1MaleAgeBar', 'extQ1FemaleAgeSidebar', q1, 'EXTERNAL Q1');
                 renderDemographicContainerCharts('extQ2GenderPie', 'extQ2MaleAgeBar', 'extQ2FemaleAgeSidebar', q2, 'EXTERNAL Q2');
                 renderExternalStructuralCharts(q1, q2);
@@ -317,11 +319,8 @@
         function renderDemographicContainerCharts(genderDiv, maleDiv, femaleDiv, dataPool, viewLabel) {
             const categories = ['0-19', '20-39', '40-59', '60-79', '80+'];
             
-            let totalCount = dataPool.length || 1;
-            let maleCount = 0;
-            let femaleCount = 0;
-            let maleAgeDist = [0, 0, 0, 0, 0];
-            let femaleAgeDist = [0, 0, 0, 0, 0];
+            let maleCount = 0, femaleCount = 0;
+            let maleAgeDist = [0, 0, 0, 0, 0], femaleAgeDist = [0, 0, 0, 0, 0];
 
             dataPool.forEach(item => {
                 let age = item.age || 0;
@@ -338,60 +337,31 @@
             let malePercentages = maleAgeDist.map(v => maleCount > 0 ? Math.round((v / maleCount) * 100) : 0);
             let femalePercentages = femaleAgeDist.map(v => femaleCount > 0 ? Math.round((v / femaleCount) * 100) : 0);
 
-            // 1. Gender Pie Chart
             Highcharts.chart(genderDiv, Highcharts.merge(darkThemeBase, {
-                chart: { type: 'pie' },
-                title: { text: `${viewLabel} GENDER SHARE` },
-                plotOptions: {
-                    pie: {
-                        innerSize: '40%', dataLabels: {
-                            enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.0f}%',
-                            style: { color: '#94a3b8', fontSize: '10px' }
-                        }
-                    }
-                },
-                tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' },
-                series: [{
-                    name: 'Gender Share',
-                    data: [
-                        { name: 'Male', y: maleCount, color: '#00bfff' },
-                        { name: 'Female', y: femaleCount, color: '#ff1493' }
-                    ]
-                }]
+                chart: { type: 'pie' }, title: { text: `${viewLabel} GENDER SHARE` },
+                plotOptions: { pie: { innerSize: '40%', dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.0f}%', style: { color: '#94a3b8', fontSize: '10px' } } } },
+                series: [{ name: 'Gender Share', data: [{ name: 'Male', y: maleCount, color: '#00bfff' }, { name: 'Female', y: femaleCount, color: '#ff1493' }] }]
             }));
 
-            // 2. Male Distribution Bracket (Vertical Bar / Column Chart)
             Highcharts.chart(maleDiv, Highcharts.merge(darkThemeBase, {
-                chart: { type: 'column' },
-                title: { text: `${viewLabel} MALE AGE DISTRIBUTION` },
-                xAxis: { categories: categories },
-                yAxis: { labels: { format: '{value}%' } },
-                plotOptions: {
-                    column: {
-                        dataLabels: { enabled: true, format: '{point.y}%', style: { color: '#94a3b8', textOutline: 'none' } }
-                    }
-                },
-                tooltip: { pointFormat: 'Percentage: <b>{point.y}%</b>' },
+                chart: { type: 'column' }, title: { text: `${viewLabel} MALE AGE DISTRIBUTION` },
+                xAxis: { categories: categories }, yAxis: { labels: { format: '{value}%' } },
+                plotOptions: { column: { dataLabels: { enabled: true, format: '{point.y}%', style: { color: '#94a3b8', textOutline: 'none' } } } },
                 series: [{ name: 'Male Brackets', data: malePercentages, color: '#00bfff' }]
             }));
 
-            // 3. Female Distribution Bracket (Horizontal Sidebar Chart)
             Highcharts.chart(femaleDiv, Highcharts.merge(darkThemeBase, {
-                chart: { type: 'bar' },
-                title: { text: `${viewLabel} FEMALE AGE DISTRIBUTION` },
-                xAxis: { categories: categories },
-                yAxis: { labels: { format: '{value}%' } },
-                plotOptions: {
-                    bar: {
-                        dataLabels: { enabled: true, format: '{point.y}%', style: { color: '#94a3b8', textOutline: 'none' } }
-                    }
-                },
-                tooltip: { pointFormat: 'Percentage: <b>{point.y}%</b>' },
+                chart: { type: 'bar' }, title: { text: `${viewLabel} FEMALE AGE DISTRIBUTION` },
+                xAxis: { categories: categories }, yAxis: { labels: { format: '{value}%' } },
+                plotOptions: { bar: { dataLabels: { enabled: true, format: '{point.y}%', style: { color: '#94a3b8', textOutline: 'none' } } } },
                 series: [{ name: 'Female Brackets', data: femalePercentages, color: '#ff1493' }]
             }));
         }
 
         function renderInternalStructuralCharts(q1, q2) {
+            const combinePool = [...q1, ...q2];
+            
+            // 1. Location Map Processing
             const processLoc = (arr) => arr.reduce((acc, c) => { acc[c.location] = (acc[c.location] || 0) + 1; return acc; }, {});
             const q1Loc = processLoc(q1), q2Loc = processLoc(q2);
             const allLocs = Array.from(new Set([...Object.keys(q1Loc), ...Object.keys(q2Loc)]));
@@ -400,6 +370,31 @@
                 series: [{ name: 'Q1 Base', data: allLocs.map(l => q1Loc[l] || 0), color: '#4f46e5', fillOpacity: 0.1 }, { name: 'Q2 Volume', data: allLocs.map(l => q2Loc[l] || 0), color: '#06b6d4', fillOpacity: 0.3 }]
             }));
 
+            // 2. Patient Type Semi-Circle Donut Configuration
+            const ptCounts = combinePool.reduce((acc, c) => { if(c.patient_type) acc[c.patient_type] = (acc[c.patient_type] || 0) + 1; return acc; }, {});
+            const ptData = Object.keys(ptCounts).map(key => ({ name: key, y: ptCounts[key] }));
+            Highcharts.chart('intPatientTypeChart', Highcharts.merge(darkThemeBase, {
+                chart: { type: 'pie', plotBackgroundColor: null, plotBorderWidth: 0, plotShadow: false },
+                title: { text: 'PATIENT TYPE SEGMENTATION' },
+                plotOptions: {
+                    pie: {
+                        dataLabels: { enabled: true, distance: -20, style: { fontWeight: 'bold', color: 'white' } },
+                        startAngle: -90, endAngle: 90, center: ['50%', '75%'], size: '110%', innerSize: '60%'
+                    }
+                },
+                series: [{ name: 'Submissions', data: ptData, colorByPoint: true }]
+            }));
+
+            // 3. Occupation Distribution Configuration
+            const occCounts = combinePool.reduce((acc, c) => { if(c.occupation) acc[c.occupation] = (acc[c.occupation] || 0) + 1; return acc; }, {});
+            const sortedOccs = Object.keys(occCounts).sort((a,b) => occCounts[b] - occCounts[a]).slice(0, 6);
+            Highcharts.chart('intOccupationChart', Highcharts.merge(darkThemeBase, {
+                chart: { type: 'bar' }, title: { text: 'TOP DISCOVERED OCCUPATIONS' },
+                xAxis: { categories: sortedOccs },
+                series: [{ name: 'Responses Count', data: sortedOccs.map(o => occCounts[o]), color: '#a855f7' }]
+            }));
+
+            // 4. Volume Spread Optimization
             const getSentimentSeries = (arr) => [arr.filter(s => s.experience_rating === 'Positive').length, arr.filter(s => s.experience_rating !== 'Positive').length];
             const q1Sent = getSentimentSeries(q1), q2Sent = getSentimentSeries(q2);
             Highcharts.chart('intSentimentChart', Highcharts.merge(darkThemeBase, {
@@ -416,13 +411,6 @@
             Highcharts.chart('extLocChart', Highcharts.merge(darkThemeBase, {
                 chart: { type: 'line' }, title: { text: 'OUTREACH TARGET LOCATIONS' }, xAxis: { categories: allLocs },
                 series: [{ name: 'Q1 Active', data: allLocs.map(l => q1Loc[l] || 0), color: '#be123c', dashStyle: 'Dash' }, { name: 'Q2 Active', data: allLocs.map(l => q2Loc[l] || 0), color: '#e11d48' }]
-            }));
-
-            const q1Yes = q1.filter(s => s.has_availed_recently).length, q2Yes = q2.filter(s => s.has_availed_recently).length;
-            Highcharts.chart('extBalanceChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'pie' }, title: { text: 'CONVERSION VARIATION RATIOS' },
-                plotOptions: { pie: { innerSize: '70%', dataLabels: { enabled: false }, showInLegend: true } },
-                series: [{ name: 'Respondents', data: [{ name: 'Q1 Engaged', y: q1Yes, color: '#881337' }, { name: 'Q1 Passive', y: q1.length - q1Yes, color: '#334155' }, { name: 'Q2 Engaged', y: q2Yes, color: '#e11d48' }, { name: 'Q2 Passive', y: q2.length - q2Yes, color: '#475569' }] }]
             }));
         }
     </script>
