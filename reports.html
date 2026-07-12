@@ -121,15 +121,12 @@
             </div>
         </div>
 
-        <!-- TRI-SEMI-DONUT PATIENT TYPE TIMELINE MATRIX -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl min-h-[260px]">
+        <!-- CONSOLIDATED HIGH-SCALE PATIENT MATRIX CONTAINER -->
+        <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+            <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 px-2">📊 Comparative Patient Classification Metrics</h3>
+            <div id="patientTypeMatrixContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[320px]">
                 <div id="ptChartOverall" class="w-full h-full"></div>
-            </div>
-            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl min-h-[260px]">
                 <div id="ptChartQ1" class="w-full h-full"></div>
-            </div>
-            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl min-h-[260px]">
                 <div id="ptChartQ2" class="w-full h-full"></div>
             </div>
         </div>
@@ -230,8 +227,8 @@
         }(Highcharts));
 
         const darkThemeBase = {
-            chart: { backgroundColor: '#1e293b', style: { fontFamily: 'Inter, sans-serif' } },
-            title: { style: { color: '#94a3b8', fontSize: '10px', fontWeight: '900', letterSpacing: '0.25em' }, align: 'left' },
+            chart: { backgroundColor: 'transparent', style: { fontFamily: 'Inter, sans-serif' } },
+            title: { style: { color: '#94a3b8', fontSize: '10px', fontWeight: '900', letterSpacing: '0.25em' }, align: 'center' },
             xAxis: { gridLineColor: '#334155', lineColor: '#334155', tickColor: '#334155', labels: { style: { color: '#94a3b8' } } },
             yAxis: { gridLineColor: '#334155', lineColor: '#334155', title: { text: null }, labels: { style: { color: '#94a3b8' } } },
             legend: { enabled: false }, exporting: { enabled: false },
@@ -299,7 +296,8 @@
             document.getElementById('tbl-q2-unsat').innerText = q2Unsat;
 
             const basePieConf = (title, data) => Highcharts.merge(darkThemeBase, {
-                title: { text: title },
+                chart: { backgroundColor: '#1e293b' },
+                title: { text: title, align: 'left' },
                 plotOptions: {
                     pie: {
                         allowPointSelect: true, borderWidth: 2, borderColor: '#1e293b', cursor: 'pointer', center: ['50%', '42%'], size: '75%',
@@ -317,7 +315,7 @@
             Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH BOUNDARY', [{ name: 'Satisfied', y: q1Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q1Unsat, color: '#ef4444' }]));
             Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
-            // New Timeline Segmented Half-Donuts for Patient Type
+            // Optimized Scale Configurations for the consolidated Semi-Donuts
             const combinePool = [...q1, ...q2];
             const buildPtData = (arr) => {
                 const counts = arr.reduce((acc, c) => { 
@@ -334,19 +332,19 @@
                     pie: {
                         dataLabels: { 
                             enabled: true, 
-                            distance: -22, 
+                            distance: -28, // Pushes text deeper into center for high visibility
                             format: '<b>{point.name}</b><br>{point.percentage:.0f}%',
-                            style: { fontWeight: 'bold', color: 'white', textOutline: '1px solid #000', fontSize: '10px' } 
+                            style: { fontWeight: '900', color: '#ffffff', textOutline: '2px solid #0f172a', fontSize: '12px' } 
                         },
-                        startAngle: -90, endAngle: 90, center: ['50%', '85%'], size: '115%', innerSize: '60%'
+                        startAngle: -90, endAngle: 90, center: ['50%', '100%'], size: '145%', innerSize: '55%'
                     }
                 },
                 series: [{ name: 'Submissions', data: data, colorByPoint: true }]
             });
 
-            Highcharts.chart('ptChartOverall', baseSemiDonutConf('OVERALL PATIENT TYPES', buildPtData(combinePool)));
-            Highcharts.chart('ptChartQ1', baseSemiDonutConf('Q1 PATIENT TYPES', buildPtData(q1)));
-            Highcharts.chart('ptChartQ2', baseSemiDonutConf('Q2 PATIENT TYPES', buildPtData(q2)));
+            Highcharts.chart('ptChartOverall', baseSemiDonutConf('OVERALL DISPOSITION SHARE', buildPtData(combinePool)));
+            Highcharts.chart('ptChartQ1', baseSemiDonutConf('Q1 MARCH RATIOS', buildPtData(q1)));
+            Highcharts.chart('ptChartQ2', baseSemiDonutConf('Q2 CURRENT RATIOS', buildPtData(q2)));
 
             if (isInt) {
                 renderDemographicContainerCharts('intQ1GenderPie', 'intQ1MaleAgeBar', 'intQ1FemaleAgeSidebar', q1, 'INTERNAL Q1');
@@ -381,20 +379,20 @@
             let femalePercentages = femaleAgeDist.map(v => femaleCount > 0 ? Math.round((v / femaleCount) * 100) : 0);
 
             Highcharts.chart(genderDiv, Highcharts.merge(darkThemeBase, {
-                chart: { type: 'pie' }, title: { text: `${viewLabel} GENDER SHARE` },
+                chart: { type: 'pie', backgroundColor: '#1e293b' }, title: { text: `${viewLabel} GENDER SHARE`, align: 'left' },
                 plotOptions: { pie: { innerSize: '40%', dataLabels: { enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.0f}%', style: { color: '#94a3b8', fontSize: '10px' } } } },
                 series: [{ name: 'Gender Share', data: [{ name: 'Male', y: maleCount, color: '#00bfff' }, { name: 'Female', y: femaleCount, color: '#ff1493' }] }]
             }));
 
             Highcharts.chart(maleDiv, Highcharts.merge(darkThemeBase, {
-                chart: { type: 'column' }, title: { text: `${viewLabel} MALE AGE DISTRIBUTION` },
+                chart: { type: 'column', backgroundColor: '#1e293b' }, title: { text: `${viewLabel} MALE AGE DISTRIBUTION`, align: 'left' },
                 xAxis: { categories: categories }, yAxis: { labels: { format: '{value}%' } },
                 plotOptions: { column: { dataLabels: { enabled: true, format: '{point.y}%', style: { color: '#94a3b8', textOutline: 'none' } } } },
                 series: [{ name: 'Male Brackets', data: malePercentages, color: '#00bfff' }]
             }));
 
             Highcharts.chart(femaleDiv, Highcharts.merge(darkThemeBase, {
-                chart: { type: 'bar' }, title: { text: `${viewLabel} FEMALE AGE DISTRIBUTION` },
+                chart: { type: 'bar', backgroundColor: '#1e293b' }, title: { text: `${viewLabel} FEMALE AGE DISTRIBUTION`, align: 'left' },
                 xAxis: { categories: categories }, yAxis: { labels: { format: '{value}%' } },
                 plotOptions: { bar: { dataLabels: { enabled: true, format: '{point.y}%', style: { color: '#94a3b8', textOutline: 'none' } } } },
                 series: [{ name: 'Female Brackets', data: femalePercentages, color: '#ff1493' }]
@@ -402,30 +400,27 @@
         }
 
         function renderInternalStructuralCharts(q1, q2) {
-            // 1. Location Map Processing
             const processLoc = (arr) => arr.reduce((acc, c) => { acc[c.location] = (acc[c.location] || 0) + 1; return acc; }, {});
             const q1Loc = processLoc(q1), q2Loc = processLoc(q2);
             const allLocs = Array.from(new Set([...Object.keys(q1Loc), ...Object.keys(q2Loc)]));
             Highcharts.chart('intLocChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'area' }, title: { text: 'REGIONAL PATIENT TRAFFIC' }, xAxis: { categories: allLocs },
+                chart: { type: 'area', backgroundColor: '#1e293b' }, title: { text: 'REGIONAL PATIENT TRAFFIC', align: 'left' }, xAxis: { categories: allLocs },
                 series: [{ name: 'Q1 Base', data: allLocs.map(l => q1Loc[l] || 0), color: '#4f46e5', fillOpacity: 0.1 }, { name: 'Q2 Volume', data: allLocs.map(l => q2Loc[l] || 0), color: '#06b6d4', fillOpacity: 0.3 }]
             }));
 
-            // 2. Occupation Distribution Configuration
             const combinePool = [...q1, ...q2];
             const occCounts = combinePool.reduce((acc, c) => { if(c.occupation) acc[c.occupation] = (acc[c.occupation] || 0) + 1; return acc; }, {});
             const sortedOccs = Object.keys(occCounts).sort((a,b) => occCounts[b] - occCounts[a]).slice(0, 6);
             Highcharts.chart('intOccupationChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'bar' }, title: { text: 'TOP DISCOVERED OCCUPATIONS' },
+                chart: { type: 'bar', backgroundColor: '#1e293b' }, title: { text: 'TOP DISCOVERED OCCUPATIONS', align: 'left' },
                 xAxis: { categories: sortedOccs },
                 series: [{ name: 'Responses Count', data: sortedOccs.map(o => occCounts[o]), color: '#a855f7' }]
             }));
 
-            // 3. Volume Spread Optimization
             const getSentimentSeries = (arr) => [arr.filter(s => s.experience_rating === 'Positive').length, arr.filter(s => s.experience_rating !== 'Positive').length];
             const q1Sent = getSentimentSeries(q1), q2Sent = getSentimentSeries(q2);
             Highcharts.chart('intSentimentChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'pie' }, title: { text: 'CROSS-QUARTER VOLUME SPREAD' },
+                chart: { type: 'pie', backgroundColor: '#1e293b' }, title: { text: 'CROSS-QUARTER VOLUME SPREAD', align: 'left' },
                 plotOptions: { pie: { innerSize: '60%', dataLabels: { enabled: false }, showInLegend: true } },
                 series: [{ name: 'Total Volume', data: [{ name: 'Q1 Pos', y: q1Sent[0], color: '#312e81' }, { name: 'Q1 Crit', y: q1Sent[1], color: '#4c1d95' }, { name: 'Q2 Pos', y: q2Sent[0], color: '#10b981' }, { name: 'Q2 Crit', y: q2Sent[1], color: '#f43f5e' }] }]
             }));
@@ -436,7 +431,7 @@
             const q1Loc = processLoc(q1), q2Loc = processLoc(q2);
             const allLocs = Array.from(new Set([...Object.keys(q1Loc), ...Object.keys(q2Loc)]));
             Highcharts.chart('extLocChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'line' }, title: { text: 'OUTREACH TARGET LOCATIONS' }, xAxis: { categories: allLocs },
+                chart: { type: 'line', backgroundColor: '#1e293b' }, title: { text: 'OUTREACH TARGET LOCATIONS', align: 'left' }, xAxis: { categories: allLocs },
                 series: [{ name: 'Q1 Active', data: allLocs.map(l => q1Loc[l] || 0), color: '#be123c', dashStyle: 'Dash' }, { name: 'Q2 Active', data: allLocs.map(l => q2Loc[l] || 0), color: '#e11d48' }]
             }));
         }
