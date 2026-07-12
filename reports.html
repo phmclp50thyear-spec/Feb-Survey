@@ -121,8 +121,8 @@
             </div>
         </div>
 
-        <!-- RE-SCALED PATIENT TYPE CONTAINER FEATURING CLEAN FULL PIE GEOMETRICS -->
-        <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
+        <!-- RE-SCALED PATIENT TYPE CONTAINER FEATURING CLEAN FULL PIE GEOMETRICS (CONTROLLED VIA JS VISIBILITY CONTROLS) -->
+        <div id="patientTypeSection" class="bg-[#1e293b] border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4">
             <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 px-2">📊 Comparative Patient Classification Metrics</h3>
             <div id="patientTypeMatrixContainer" class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[250px]">
                 <div id="ptChartOverall" class="w-full h-[250px]"></div>
@@ -275,16 +275,23 @@
             
             const btnInt = document.getElementById('btn-internal'), btnExt = document.getElementById('btn-external');
             const lblQ2 = document.getElementById('lbl-q2-title');
+            const patientSection = document.getElementById('patientTypeSection');
             
             if(type === 'internal') {
                 btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-indigo-600 shadow-md text-white";
                 btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200";
                 lblQ2.className = "text-[9px] font-black text-teal-400 block tracking-widest uppercase";
+                
+                // Show patient data classification layout on Internal Data view
+                if(patientSection) patientSection.style.display = 'block';
                 renderActiveDataset(cachedInternal.q1, cachedInternal.q2, 'internal');
             } else {
                 btnExt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all bg-rose-600 shadow-md text-white";
                 btnInt.className = "px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all text-slate-400 hover:text-slate-200";
                 lblQ2.className = "text-[9px] font-black text-rose-400 block tracking-widest uppercase";
+                
+                // Completely hide patient data metrics component from external market reports
+                if(patientSection) patientSection.style.display = 'none';
                 renderActiveDataset(cachedExternal.q1, cachedExternal.q2, 'external');
             }
         }
@@ -328,37 +335,37 @@
             Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH BOUNDARY', [{ name: 'Satisfied', y: q1Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q1Unsat, color: '#ef4444' }]));
             Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
-            // Full Pie Chart Structural Configuration
-            const combinePool = [...q1, ...q2];
-            const buildPtData = (arr) => {
-                const counts = arr.reduce((acc, c) => { 
-                    if(c.patient_type) acc[c.patient_type] = (acc[c.patient_type] || 0) + 1; 
-                    return acc; 
-                }, {});
-                return Object.keys(counts).map(key => ({ name: key, y: counts[key] }));
-            };
-
-            const baseFullPieConf = (title, data) => Highcharts.merge(darkThemeBase, {
-                chart: { type: 'pie' },
-                title: { text: title, y: 10 },
-                plotOptions: {
-                    pie: {
-                        allowPointSelect: true, borderWidth: 2, borderColor: '#1e293b', cursor: 'pointer', center: ['50%', '45%'], size: '65%',
-                        dataLabels: {
-                            enabled: true, distance: 15, format: '<b>{point.name}</b><br>{point.percentage:.0f}%',
-                            style: { color: '#94a3b8', fontSize: '11px', fontWeight: '700', textOutline: 'none' },
-                            connectorWidth: 1.5, connectorColor: '#334155'
-                        }
-                    }
-                },
-                series: [{ name: 'Submissions', data: data, colorByPoint: true }]
-            });
-
-            Highcharts.chart('ptChartOverall', baseFullPieConf('OVERALL DISPOSITION SHARE', buildPtData(combinePool)));
-            Highcharts.chart('ptChartQ1', baseFullPieConf('Q1 MARCH RATIOS', buildPtData(q1)));
-            Highcharts.chart('ptChartQ2', baseFullPieConf('Q2 CURRENT RATIOS', buildPtData(q2)));
-
+            // Only initialize internal-specific charts if currently viewing internal mode
             if (isInt) {
+                const combinePool = [...q1, ...q2];
+                const buildPtData = (arr) => {
+                    const counts = arr.reduce((acc, c) => { 
+                        if(c.patient_type) acc[c.patient_type] = (acc[c.patient_type] || 0) + 1; 
+                        return acc; 
+                    }, {});
+                    return Object.keys(counts).map(key => ({ name: key, y: counts[key] }));
+                };
+
+                const baseFullPieConf = (title, data) => Highcharts.merge(darkThemeBase, {
+                    chart: { type: 'pie' },
+                    title: { text: title, y: 10 },
+                    plotOptions: {
+                        pie: {
+                            allowPointSelect: true, borderWidth: 2, borderColor: '#1e293b', cursor: 'pointer', center: ['50%', '45%'], size: '65%',
+                            dataLabels: {
+                                enabled: true, distance: 15, format: '<b>{point.name}</b><br>{point.percentage:.0f}%',
+                                style: { color: '#94a3b8', fontSize: '11px', fontWeight: '700', textOutline: 'none' },
+                                connectorWidth: 1.5, connectorColor: '#334155'
+                            }
+                        }
+                    },
+                    series: [{ name: 'Submissions', data: data, colorByPoint: true }]
+                });
+
+                Highcharts.chart('ptChartOverall', baseFullPieConf('OVERALL DISPOSITION SHARE', buildPtData(combinePool)));
+                Highcharts.chart('ptChartQ1', baseFullPieConf('Q1 MARCH RATIOS', buildPtData(q1)));
+                Highcharts.chart('ptChartQ2', baseFullPieConf('Q2 CURRENT RATIOS', buildPtData(q2)));
+
                 renderDemographicContainerCharts('intQ1GenderPie', 'intQ1MaleAgeBar', 'intQ1FemaleAgeSidebar', q1, 'INTERNAL Q1');
                 renderDemographicContainerCharts('intQ2GenderPie', 'intQ2MaleAgeBar', 'intQ2FemaleAgeSidebar', q2, 'INTERNAL Q2');
                 renderInternalStructuralCharts(q1, q2); 
