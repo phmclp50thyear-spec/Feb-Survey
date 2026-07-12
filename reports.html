@@ -121,6 +121,19 @@
             </div>
         </div>
 
+        <!-- TRI-SEMI-DONUT PATIENT TYPE TIMELINE MATRIX -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl min-h-[260px]">
+                <div id="ptChartOverall" class="w-full h-full"></div>
+            </div>
+            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl min-h-[260px]">
+                <div id="ptChartQ1" class="w-full h-full"></div>
+            </div>
+            <div class="bg-[#1e293b] border border-slate-800 rounded-3xl p-4 shadow-xl min-h-[260px]">
+                <div id="ptChartQ2" class="w-full h-full"></div>
+            </div>
+        </div>
+
         <!-- ==================== INTERNAL DATA VIEW ==================== -->
         <div id="section-internal" class="tab-content active space-y-8">
             <!-- Q1 DEMOGRAPHICS -->
@@ -143,13 +156,12 @@
                 </div>
             </div>
 
-            <!-- GEOGRAPHIC, PATIENT TYPE, OCCUPATION, & VOLUME TRAFFIC CONTAINER ROWS -->
+            <!-- GEOGRAPHIC, OCCUPATION, & VOLUME TRAFFIC CONTAINER ROWS -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intLocChart"></div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intPatientTypeChart"></div>
+                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intOccupationChart"></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intOccupationChart"></div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intSentimentChart"></div>
             </div>
         </div>
@@ -305,6 +317,37 @@
             Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH BOUNDARY', [{ name: 'Satisfied', y: q1Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q1Unsat, color: '#ef4444' }]));
             Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
+            // New Timeline Segmented Half-Donuts for Patient Type
+            const combinePool = [...q1, ...q2];
+            const buildPtData = (arr) => {
+                const counts = arr.reduce((acc, c) => { 
+                    if(c.patient_type) acc[c.patient_type] = (acc[c.patient_type] || 0) + 1; 
+                    return acc; 
+                }, {});
+                return Object.keys(counts).map(key => ({ name: key, y: counts[key] }));
+            };
+
+            const baseSemiDonutConf = (title, data) => Highcharts.merge(darkThemeBase, {
+                chart: { type: 'pie', plotBackgroundColor: null, plotBorderWidth: 0, plotShadow: false },
+                title: { text: title },
+                plotOptions: {
+                    pie: {
+                        dataLabels: { 
+                            enabled: true, 
+                            distance: -22, 
+                            format: '<b>{point.name}</b><br>{point.percentage:.0f}%',
+                            style: { fontWeight: 'bold', color: 'white', textOutline: '1px solid #000', fontSize: '10px' } 
+                        },
+                        startAngle: -90, endAngle: 90, center: ['50%', '85%'], size: '115%', innerSize: '60%'
+                    }
+                },
+                series: [{ name: 'Submissions', data: data, colorByPoint: true }]
+            });
+
+            Highcharts.chart('ptChartOverall', baseSemiDonutConf('OVERALL PATIENT TYPES', buildPtData(combinePool)));
+            Highcharts.chart('ptChartQ1', baseSemiDonutConf('Q1 PATIENT TYPES', buildPtData(q1)));
+            Highcharts.chart('ptChartQ2', baseSemiDonutConf('Q2 PATIENT TYPES', buildPtData(q2)));
+
             if (isInt) {
                 renderDemographicContainerCharts('intQ1GenderPie', 'intQ1MaleAgeBar', 'intQ1FemaleAgeSidebar', q1, 'INTERNAL Q1');
                 renderDemographicContainerCharts('intQ2GenderPie', 'intQ2MaleAgeBar', 'intQ2FemaleAgeSidebar', q2, 'INTERNAL Q2');
@@ -359,8 +402,6 @@
         }
 
         function renderInternalStructuralCharts(q1, q2) {
-            const combinePool = [...q1, ...q2];
-            
             // 1. Location Map Processing
             const processLoc = (arr) => arr.reduce((acc, c) => { acc[c.location] = (acc[c.location] || 0) + 1; return acc; }, {});
             const q1Loc = processLoc(q1), q2Loc = processLoc(q2);
@@ -370,22 +411,8 @@
                 series: [{ name: 'Q1 Base', data: allLocs.map(l => q1Loc[l] || 0), color: '#4f46e5', fillOpacity: 0.1 }, { name: 'Q2 Volume', data: allLocs.map(l => q2Loc[l] || 0), color: '#06b6d4', fillOpacity: 0.3 }]
             }));
 
-            // 2. Patient Type Semi-Circle Donut Configuration
-            const ptCounts = combinePool.reduce((acc, c) => { if(c.patient_type) acc[c.patient_type] = (acc[c.patient_type] || 0) + 1; return acc; }, {});
-            const ptData = Object.keys(ptCounts).map(key => ({ name: key, y: ptCounts[key] }));
-            Highcharts.chart('intPatientTypeChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'pie', plotBackgroundColor: null, plotBorderWidth: 0, plotShadow: false },
-                title: { text: 'PATIENT TYPE SEGMENTATION' },
-                plotOptions: {
-                    pie: {
-                        dataLabels: { enabled: true, distance: -20, style: { fontWeight: 'bold', color: 'white' } },
-                        startAngle: -90, endAngle: 90, center: ['50%', '75%'], size: '110%', innerSize: '60%'
-                    }
-                },
-                series: [{ name: 'Submissions', data: ptData, colorByPoint: true }]
-            }));
-
-            // 3. Occupation Distribution Configuration
+            // 2. Occupation Distribution Configuration
+            const combinePool = [...q1, ...q2];
             const occCounts = combinePool.reduce((acc, c) => { if(c.occupation) acc[c.occupation] = (acc[c.occupation] || 0) + 1; return acc; }, {});
             const sortedOccs = Object.keys(occCounts).sort((a,b) => occCounts[b] - occCounts[a]).slice(0, 6);
             Highcharts.chart('intOccupationChart', Highcharts.merge(darkThemeBase, {
@@ -394,7 +421,7 @@
                 series: [{ name: 'Responses Count', data: sortedOccs.map(o => occCounts[o]), color: '#a855f7' }]
             }));
 
-            // 4. Volume Spread Optimization
+            // 3. Volume Spread Optimization
             const getSentimentSeries = (arr) => [arr.filter(s => s.experience_rating === 'Positive').length, arr.filter(s => s.experience_rating !== 'Positive').length];
             const q1Sent = getSentimentSeries(q1), q2Sent = getSentimentSeries(q2);
             Highcharts.chart('intSentimentChart', Highcharts.merge(darkThemeBase, {
