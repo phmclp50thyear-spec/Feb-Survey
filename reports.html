@@ -9,12 +9,11 @@
     
     <!-- Core Highcharts + Dependent Modules -->
     <script src="https://code.highcharts.com/highcharts.js"></script>
-    <script src="https://code.highcharts.com/highcharts-more.js"></script>
     <script src="https://code.highcharts.com/modules/exporting.js"></script>
     <script src="https://code.highcharts.com/modules/export-data.js"></script>
     <script src="https://code.highcharts.com/modules/accessibility.js"></script>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght=300;400;600;700;900&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
             theme: {
@@ -124,13 +123,11 @@
 
         <!-- ==================== INTERNAL DATA VIEW ==================== -->
         <div id="section-internal" class="tab-content active space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
-                     <div id="intDemoChartQ1" class="w-full h-[240px]"></div>
-                </div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
-                     <div id="intDemoChartQ2" class="w-full h-[240px]"></div>
-                </div>
+            <!-- UNIFIED COMPACT CONTAINER HOUSING DEMOGRAPHIC CHARTS -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800">
+                <div class="w-full min-h-[300px]" id="intGenderPie"></div>
+                <div class="w-full min-h-[300px]" id="intMaleAgeBar"></div>
+                <div class="w-full min-h-[300px]" id="intFemaleAgeSidebar"></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intLocChart"></div>
@@ -140,13 +137,11 @@
 
         <!-- ==================== EXTERNAL MARKET VIEW ==================== -->
         <div id="section-external" class="tab-content space-y-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
-                     <div id="extDemoChartQ1" class="w-full h-[240px]"></div>
-                </div>
-                <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800 w-full overflow-visible">
-                     <div id="extDemoChartQ2" class="w-full h-[240px]"></div>
-                </div>
+            <!-- UNIFIED COMPACT CONTAINER HOUSING DEMOGRAPHIC CHARTS -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800">
+                <div class="w-full min-h-[300px]" id="extGenderPie"></div>
+                <div class="w-full min-h-[300px]" id="extMaleAgeBar"></div>
+                <div class="w-full min-h-[300px]" id="extFemaleAgeSidebar"></div>
             </div>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extLocChart"></div>
@@ -278,53 +273,93 @@
             Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH BOUNDARY', [{ name: 'Satisfied', y: q1Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q1Unsat, color: '#ef4444' }]));
             Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
+            // Combined dataset for demographics mapping
+            const combinedData = [...q1, ...q2];
+
             if (isInt) {
-                renderSpiderwebChart('intDemoChartQ1', q1, 'GENDER & AGE BRACKET MATRIX (Q1 MARCH)');
-                renderSpiderwebChart('intDemoChartQ2', q2, 'GENDER & AGE BRACKET MATRIX (Q2 JUN/JUL)');
+                renderDemographicContainerCharts('intGenderPie', 'intMaleAgeBar', 'intFemaleAgeSidebar', combinedData, 'INTERNAL');
                 renderInternalStructuralCharts(q1, q2); 
             } else {
-                renderSpiderwebChart('extDemoChartQ1', q1, 'MARKET MATRIX (Q1 MARCH)');
-                renderSpiderwebChart('extDemoChartQ2', q2, 'MARKET MATRIX (Q2 JUN/JUL)');
+                renderDemographicContainerCharts('extGenderPie', 'extMaleAgeBar', 'extFemaleAgeSidebar', combinedData, 'EXTERNAL');
                 renderExternalStructuralCharts(q1, q2);
             }
         }
 
-        function calculateAgeBracketsByGender(dataPool) {
+        function renderDemographicContainerCharts(genderDiv, maleDiv, femaleDiv, dataPool, viewLabel) {
+            const categories = ['0-19', '20-39', '40-59', '60-79', '80+'];
+            
             let totalCount = dataPool.length || 1;
-            let ranges = ['0-19', '20-39', '40-59', '60-79', '80+'];
-            let result = {
-                male: ranges.map(() => 0),
-                female: ranges.map(() => 0)
-            };
+            let maleCount = 0;
+            let femaleCount = 0;
+            let maleAgeDist = [0, 0, 0, 0, 0];
+            let femaleAgeDist = [0, 0, 0, 0, 0];
 
             dataPool.forEach(item => {
                 let age = item.age || 0;
                 let idx = age <= 19 ? 0 : age <= 39 ? 1 : age <= 59 ? 2 : age <= 79 ? 3 : 4;
-                if (item.gender === 'Male') result.male[idx]++;
-                else result.female[idx]++;
+                if (item.gender === 'Male') {
+                    maleCount++;
+                    maleAgeDist[idx]++;
+                } else {
+                    femaleCount++;
+                    femaleAgeDist[idx]++;
+                }
             });
 
-            return {
-                male: result.male.map(v => Math.round((v / totalCount) * 100)),
-                female: result.female.map(v => Math.round((v / totalCount) * 100))
-            };
-        }
+            // Calculate exact metrics percentages relative to specific gender pools
+            let malePercentages = maleAgeDist.map(v => maleCount > 0 ? Math.round((v / maleCount) * 100) : 0);
+            let femalePercentages = femaleAgeDist.map(v => femaleCount > 0 ? Math.round((v / femaleCount) * 100) : 0);
 
-        function renderSpiderwebChart(containerId, dataset, titleText) {
-            const data = calculateAgeBracketsByGender(dataset);
-            const categories = ['0-19', '20-39', '40-59', '60-79', '80+'];
+            // 1. Gender Pie Chart configuration
+            Highcharts.chart(genderDiv, Highcharts.merge(darkThemeBase, {
+                chart: { type: 'pie' },
+                title: { text: `${viewLabel} GENDER SHARE` },
+                plotOptions: {
+                    pie: {
+                        innerSize: '40%', dataLabels: {
+                            enabled: true, format: '<b>{point.name}</b><br>{point.percentage:.0f}%',
+                            style: { color: '#94a3b8', fontSize: '10px' }
+                        }
+                    }
+                },
+                tooltip: { pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>' },
+                series: [{
+                    name: 'Gender Share',
+                    data: [
+                        { name: 'Male', y: maleCount, color: '#00bfff' },
+                        { name: 'Female', y: femaleCount, color: '#ff1493' }
+                    ]
+                }]
+            }));
 
-            Highcharts.chart(containerId, Highcharts.merge(darkThemeBase, {
-                chart: { polar: true, type: 'area' },
-                title: { text: titleText },
-                pane: { size: '70%' },
-                xAxis: { categories: categories, tickmarkPlacement: 'on', lineWidth: 0, labels: { style: { color: '#64748b' } } },
-                yAxis: { gridLineInterpolation: 'polygon', lineWidth: 0, min: 0, max: 50, labels: { enabled: false } },
-                tooltip: { shared: true, pointFormat: '<span style="color:{series.color}">{series.name}: <b>{point.y}%</b><br/>' },
-                series: [
-                    { name: 'Female', data: data.female, pointPlacement: 'on', color: '#ff1493', fillOpacity: 0.3 },
-                    { name: 'Male', data: data.male, pointPlacement: 'on', color: '#00bfff', fillOpacity: 0.3 }
-                ]
+            // 2. Male Distribution Bracket (Vertical Bar / Column Chart)
+            Highcharts.chart(maleDiv, Highcharts.merge(darkThemeBase, {
+                chart: { type: 'column' },
+                title: { text: 'MALE AGE DISTRIBUTION' },
+                xAxis: { categories: categories },
+                yAxis: { labels: { format: '{value}%' } },
+                plotOptions: {
+                    column: {
+                        dataLabels: { enabled: true, format: '{point.y}%', style: { color: '#94a3b8', textOutline: 'none' } }
+                    }
+                },
+                tooltip: { pointFormat: 'Percentage: <b>{point.y}%</b>' },
+                series: [{ name: 'Male Brackets', data: malePercentages, color: '#00bfff' }]
+            }));
+
+            // 3. Female Distribution Bracket (Horizontal Sidebar Chart)
+            Highcharts.chart(femaleDiv, Highcharts.merge(darkThemeBase, {
+                chart: { type: 'bar' },
+                title: { text: 'FEMALE AGE DISTRIBUTION' },
+                xAxis: { categories: categories },
+                yAxis: { labels: { format: '{value}%' } },
+                plotOptions: {
+                    bar: {
+                        dataLabels: { enabled: true, format: '{point.y}%', style: { color: '#94a3b8', textOutline: 'none' } }
+                    }
+                },
+                tooltip: { pointFormat: 'Percentage: <b>{point.y}%</b>' },
+                series: [{ name: 'Female Brackets', data: femalePercentages, color: '#ff1493' }]
             }));
         }
 
