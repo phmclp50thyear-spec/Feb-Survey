@@ -122,13 +122,27 @@
         </div>
 
         <!-- ==================== INTERNAL DATA VIEW ==================== -->
-        <div id="section-internal" class="tab-content active space-y-6">
-            <!-- UNIFIED COMPACT CONTAINER HOUSING DEMOGRAPHIC CHARTS -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800">
-                <div class="w-full min-h-[300px]" id="intGenderPie"></div>
-                <div class="w-full min-h-[300px]" id="intMaleAgeBar"></div>
-                <div class="w-full min-h-[300px]" id="intFemaleAgeSidebar"></div>
+        <div id="section-internal" class="tab-content active space-y-8">
+            <!-- Q1 DEMOGRAPHICS -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-black uppercase tracking-widest text-indigo-400 px-2">📅 Q1 March Demographics Matrix</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800">
+                    <div class="w-full min-h-[300px]" id="intQ1GenderPie"></div>
+                    <div class="w-full min-h-[300px]" id="intQ1MaleAgeBar"></div>
+                    <div class="w-full min-h-[300px]" id="intQ1FemaleAgeSidebar"></div>
+                </div>
             </div>
+
+            <!-- Q2 DEMOGRAPHICS -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-black uppercase tracking-widest text-teal-400 px-2">📅 Q2 June/July Demographics Matrix</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800">
+                    <div class="w-full min-h-[300px]" id="intQ2GenderPie"></div>
+                    <div class="w-full min-h-[300px]" id="intQ2MaleAgeBar"></div>
+                    <div class="w-full min-h-[300px]" id="intQ2FemaleAgeSidebar"></div>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intLocChart"></div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="intSentimentChart"></div>
@@ -136,13 +150,27 @@
         </div>
 
         <!-- ==================== EXTERNAL MARKET VIEW ==================== -->
-        <div id="section-external" class="tab-content space-y-6">
-            <!-- UNIFIED COMPACT CONTAINER HOUSING DEMOGRAPHIC CHARTS -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800">
-                <div class="w-full min-h-[300px]" id="extGenderPie"></div>
-                <div class="w-full min-h-[300px]" id="extMaleAgeBar"></div>
-                <div class="w-full min-h-[300px]" id="extFemaleAgeSidebar"></div>
+        <div id="section-external" class="tab-content space-y-8">
+            <!-- Q1 DEMOGRAPHICS -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-black uppercase tracking-widest text-rose-400 px-2">📅 Q1 March Demographics Matrix</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800">
+                    <div class="w-full min-h-[300px]" id="extQ1GenderPie"></div>
+                    <div class="w-full min-h-[300px]" id="extQ1MaleAgeBar"></div>
+                    <div class="w-full min-h-[300px]" id="extQ1FemaleAgeSidebar"></div>
+                </div>
             </div>
+
+            <!-- Q2 DEMOGRAPHICS -->
+            <div class="space-y-3">
+                <h3 class="text-xs font-black uppercase tracking-widest text-rose-500 px-2">📅 Q2 June/July Demographics Matrix</h3>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800">
+                    <div class="w-full min-h-[300px]" id="extQ2GenderPie"></div>
+                    <div class="w-full min-h-[300px]" id="extQ2MaleAgeBar"></div>
+                    <div class="w-full min-h-[300px]" id="extQ2FemaleAgeSidebar"></div>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extLocChart"></div>
                 <div class="bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800" id="extBalanceChart"></div>
@@ -273,14 +301,15 @@
             Highcharts.chart('satChartQ1', basePieConf('Q1 MARCH BOUNDARY', [{ name: 'Satisfied', y: q1Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q1Unsat, color: '#ef4444' }]));
             Highcharts.chart('satChartQ2', basePieConf('Q2 JUN/JUL BOUNDARY', [{ name: 'Satisfied', y: q2Sat, color: '#22c55e' }, { name: 'Unsatisfied', y: q2Unsat, color: '#ef4444' }]));
 
-            // Combined dataset for demographics mapping
-            const combinedData = [...q1, ...q2];
-
             if (isInt) {
-                renderDemographicContainerCharts('intGenderPie', 'intMaleAgeBar', 'intFemaleAgeSidebar', combinedData, 'INTERNAL');
+                // Separate Q1 and Q2 rendering for Internal View
+                renderDemographicContainerCharts('intQ1GenderPie', 'intQ1MaleAgeBar', 'intQ1FemaleAgeSidebar', q1, 'INTERNAL Q1');
+                renderDemographicContainerCharts('intQ2GenderPie', 'intQ2MaleAgeBar', 'intQ2FemaleAgeSidebar', q2, 'INTERNAL Q2');
                 renderInternalStructuralCharts(q1, q2); 
             } else {
-                renderDemographicContainerCharts('extGenderPie', 'extMaleAgeBar', 'extFemaleAgeSidebar', combinedData, 'EXTERNAL');
+                // Separate Q1 and Q2 rendering for External View
+                renderDemographicContainerCharts('extQ1GenderPie', 'extQ1MaleAgeBar', 'extQ1FemaleAgeSidebar', q1, 'EXTERNAL Q1');
+                renderDemographicContainerCharts('extQ2GenderPie', 'extQ2MaleAgeBar', 'extQ2FemaleAgeSidebar', q2, 'EXTERNAL Q2');
                 renderExternalStructuralCharts(q1, q2);
             }
         }
@@ -306,11 +335,10 @@
                 }
             });
 
-            // Calculate exact metrics percentages relative to specific gender pools
             let malePercentages = maleAgeDist.map(v => maleCount > 0 ? Math.round((v / maleCount) * 100) : 0);
             let femalePercentages = femaleAgeDist.map(v => femaleCount > 0 ? Math.round((v / femaleCount) * 100) : 0);
 
-            // 1. Gender Pie Chart configuration
+            // 1. Gender Pie Chart
             Highcharts.chart(genderDiv, Highcharts.merge(darkThemeBase, {
                 chart: { type: 'pie' },
                 title: { text: `${viewLabel} GENDER SHARE` },
@@ -335,7 +363,7 @@
             // 2. Male Distribution Bracket (Vertical Bar / Column Chart)
             Highcharts.chart(maleDiv, Highcharts.merge(darkThemeBase, {
                 chart: { type: 'column' },
-                title: { text: 'MALE AGE DISTRIBUTION' },
+                title: { text: `${viewLabel} MALE AGE DISTRIBUTION` },
                 xAxis: { categories: categories },
                 yAxis: { labels: { format: '{value}%' } },
                 plotOptions: {
@@ -350,7 +378,7 @@
             // 3. Female Distribution Bracket (Horizontal Sidebar Chart)
             Highcharts.chart(femaleDiv, Highcharts.merge(darkThemeBase, {
                 chart: { type: 'bar' },
-                title: { text: 'FEMALE AGE DISTRIBUTION' },
+                title: { text: `${viewLabel} FEMALE AGE DISTRIBUTION` },
                 xAxis: { categories: categories },
                 yAxis: { labels: { format: '{value}%' } },
                 plotOptions: {
