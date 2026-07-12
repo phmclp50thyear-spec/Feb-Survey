@@ -153,7 +153,7 @@
                 </div>
             </div>
 
-            <!-- PRIMARY OBJECTIVES DEPARTMENT COMPARISON CARD -->
+            <!-- PRIMARY OBJECTIVES DEPARTMENT COMPARISON MATRIX -->
             <div class="w-full bg-[#1e293b] shadow-xl rounded-3xl p-6 border border-slate-800">
                 <div id="intObjectiveChart" class="w-full min-h-[380px]"></div>
             </div>
@@ -410,7 +410,7 @@
         }
 
         function renderInternalStructuralCharts(q1, q2) {
-            // New Primary Objective Cross-Quarter Processing Matrix Block
+            // Primary Objective Cross-Quarter Processing Matrix Block
             const getObjCounts = (arr) => arr.reduce((acc, c) => {
                 if (c.primary_objective) {
                     acc[c.primary_objective] = (acc[c.primary_objective] || 0) + 1;
@@ -447,13 +447,48 @@
                 series: [{ name: 'Q1 Base', data: allLocs.map(l => q1Loc[l] || 0), color: '#4f46e5', fillOpacity: 0.1 }, { name: 'Q2 Volume', data: allLocs.map(l => q2Loc[l] || 0), color: '#06b6d4', fillOpacity: 0.3 }]
             }));
 
+            // TOP DISCOVERED OCCUPATIONS WITH DYNAMIC PERCENTAGE LABELS
             const combinePool = [...q1, ...q2];
-            const occCounts = combinePool.reduce((acc, c) => { if(c.occupation) acc[c.occupation] = (acc[c.occupation] || 0) + 1; return acc; }, {});
+            const totalCount = combinePool.length;
+            
+            const occCounts = combinePool.reduce((acc, c) => { 
+                if(c.occupation) acc[c.occupation] = (acc[c.occupation] || 0) + 1; 
+                return acc; 
+            }, {});
+            
             const sortedOccs = Object.keys(occCounts).sort((a,b) => occCounts[b] - occCounts[a]).slice(0, 6);
+            
+            const chartData = sortedOccs.map(o => {
+                const count = occCounts[o];
+                const pct = totalCount > 0 ? ((count / totalCount) * 100).toFixed(1) : 0;
+                return {
+                    y: count,
+                    percentageLabel: pct + '%'
+                };
+            });
+
             Highcharts.chart('intOccupationChart', Highcharts.merge(darkThemeBase, {
-                chart: { type: 'bar', backgroundColor: '#1e293b' }, title: { text: 'TOP DISCOVERED OCCUPATIONS', align: 'left' },
+                chart: { type: 'bar', backgroundColor: '#1e293b' }, 
+                title: { text: 'TOP DISCOVERED OCCUPATIONS', align: 'left' },
                 xAxis: { categories: sortedOccs },
-                series: [{ name: 'Responses Count', data: sortedOccs.map(o => occCounts[o]), color: '#a855f7' }]
+                yAxis: { gridLineColor: '#334155' },
+                tooltip: {
+                    pointFormatter: function() {
+                        return `<span style="color:${this.color}">\u25cf</span> ${this.series.name}: <b>${this.y}</b> (${this.percentageLabel})<br/>`;
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                        dataLabels: {
+                            enabled: true,
+                            style: { color: '#cbd5e1', textOutline: 'none', fontSize: '11px' },
+                            formatter: function() {
+                                return this.y + ' (' + this.point.percentageLabel + ')';
+                            }
+                        }
+                    }
+                },
+                series: [{ name: 'Responses Count', data: chartData, color: '#a855f7' }]
             }));
         }
 
